@@ -11,23 +11,29 @@ public class Deposit extends Transaction {
 
     @Override
     public boolean execute() {
-        if (executed == true)
+        if (executed) {
+            return false; // Η συναλλαγή έχει ήδη εκτελεστεί
+        }
+
+        try {
+            // 1. Έλεγχος αν ο λογαριασμός υπάρχει
+            BankAccount b = systemRef.getAccountManager().findAccountByIBAN(accountIBAN);
+            if (b == null) {
+                return false; // Λογαριασμός δεν βρέθηκε
+            }
+
+            // 2. Αύξηση του υπολοίπου του λογαριασμού
+            b.addToBalance(amount);
+
+            // 3. Δημιουργία statement
+            AccountStatementManager accStmtManager = systemRef.getAccountStatementManager();
+            accStmtManager.addStatement(accountIBAN, transactorId, description, amount, b.getBalance(), "DEPOSIT",
+                    accountIBAN);
+
+            executed = true;
+            return true;
+        } catch (Exception e) {
             return false;
-
-        // 1. ayksanw to balance toy bank account sto opoio antistoixei to iban kata to
-        // // amount
-
-        BankAccount b = systemRef.getAccountManager().findAccountByIBAN(accountIBAN);
-        b.addToBalance(amount);
-
-        executed = true;
-
-        // 2. dhmioyrgeitai ena account statement
-        // xreiazesai to account statement manager
-        AccountStatementManager accStmtManager = systemRef.getAccountStatementManager();
-
-        accStmtManager.addStatement(accountIBAN, transactorId, description, amount, b.getBalance(), "deposit", accountIBAN);
-
-        return true;
+        }
     }
 }

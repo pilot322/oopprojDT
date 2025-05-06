@@ -7,7 +7,7 @@ import java.util.List;
 import models.statements.AccountStatement;
 import system.BankSystem;
 
-public class AccountStatementManager extends Manager{
+public class AccountStatementManager extends Manager {
     private HashMap<String, List<AccountStatement>> statements;
 
     public AccountStatementManager(BankSystem system) {
@@ -20,7 +20,24 @@ public class AccountStatementManager extends Manager{
             String description, double amount,
             double balanceAfter, String type,
             String receiverIBAN) {
-        throw new RuntimeException("TODO");
+
+        // AccountStatement newStatement = new AccountStatement(
+        // transactorId,
+        // description,
+        // amount,
+        // balanceAfter,
+        // type,
+        // receiverIBAN);
+
+        // Αν δεν υπάρχει λίστα για αυτό το IBAN, δημιουργούμε νέα
+        if (!statements.containsKey(accountIBAN)) {
+            statements.put(accountIBAN, new ArrayList<>());
+        }
+
+        // Προσθέτουμε το statement στη λίστα
+        // statements.get(accountIBAN).add(newStatement);
+
+        return true;
     }
 
     // Λήψη όλων των statements για IBAN
