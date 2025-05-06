@@ -20,67 +20,60 @@ public class CLI {
 
     public static final Scanner input = new Scanner(System.in);
     public static BankSystem system = new BankSystem();
+    static User currentUser;
+    static BankAccount currentBankAccount;
 
     public static void main(String[] args) {
 
-        User user = promptToAuthenticate();
-
-        while (true) {
-            int choice = getMainMenuChoice(user);
-            handleChoice(user, choice);
+        promptToAuthenticate(); // stoxos: user != null gia na paw sto state 4
+        if (currentUser == null) {
+            System.exit(0);
         }
+        if (currentUser instanceof Individual) {
+            // startIndividualMenu();
+        } else if (currentUser instanceof Company) {
+
+        } else {
+
+        }
+
     }
 
-    private static void handleChoice(User user, int choice) {
-        switch (choice) {
-            case 1:
-                System.out.println("Show Balance");
-                break;
-            case 2:
-                System.out.println("Deposit amount");
-                break;
-            case 3:
-                System.out.println("Withdraw amount");
-                break;
-            case 4:
-                System.out.println("Find user by id");
-            case 5:
-                System.out.println("Disconnect");
-                user = null;
-                break;
-            default:
-                System.out.println("Non valid choice");
-        }
+    private static void startIndividualMenu() {
+        System.out.println("Available accounts: (choose one)");
+
+        // TODO: ektypwse me 1, 2, 3 .. ta available bank accounts gia ayton ton xrhsth
+        // choose kai anathesh
+
     }
 
-    private static int getMainMenuChoice(User user) {
-        while (true) {
+    // private static int getMainMenuChoice(User user) {
+    // while (true) {
 
-            try {
-                System.out.println("\n----Main Menu----");
-                System.out.println("1. Show Balance");
-                System.out.println("2. Deposit");
-                System.out.println("3. Withrawl");
-                System.out.println("4  Find user by id");
-                System.out.println("5. Desconnect");
+    // try {
+    // System.out.println("\n----Main Menu----");
+    // System.out.println("1. Show Balance");
+    // System.out.println("2. Deposit");
+    // System.out.println("3. Withrawl");
+    // System.out.println("4 Find user by id");
+    // System.out.println("5. Desconnect");
 
-                System.out.print("Choice: ");
+    // System.out.print("Choice: ");
 
-                return input.nextInt();
-            } catch (InputMismatchException e) {
-                System.out.println("Error: Please enter a number (1-4).");
-                input.nextLine();
+    // return input.nextInt();
+    // } catch (InputMismatchException e) {
+    // System.out.println("Error: Please enter a number (1-4).");
+    // input.nextLine();
 
-            }
-        }
-    }
+    // }
+    // }
+    // }
 
-    private static User promptToAuthenticate() {
+    private static void promptToAuthenticate() {
         System.out.println("Bank Of Tuc");
-        System.out.println("1. Registration");
+        System.out.println("1. Register");
         System.out.println("2. Log in");
-        System.out.println("3. Create Account");
-        System.out.println("4. Exit");
+        System.out.println("3. Exit");
         System.out.print("Choice: ");
 
         try {
@@ -91,14 +84,15 @@ public class CLI {
                     break;
                 case 2:
                     handleRegistration();
+                    handleLogin();
                     break;
                 case 3:
-                    handleAccountCreation();
-                    break;
-                case 4:
                     System.exit(0);
+                    break;
                 default:
                     System.out.println("Non valid choice");
+                    System.exit(0);
+                    // TODO: exit h retry
             }
         } catch (InputMismatchException e) {
             System.out.println("Error: Please enter a number (1, 2, 3 or  4).");
@@ -115,10 +109,12 @@ public class CLI {
         System.out.print("Password: ");
         String password = input.nextLine();
 
-        User currentUser = UserManager.login(username, password);
+        User currentUser = system.getUserManager().login(username, password);
 
         if (currentUser == null) {
             System.out.println("Wrong username ή password");
+
+            // TODO: exit h retry
         } else {
             System.out.println("loged in successfully " + currentUser.getLegalName());
         }
@@ -128,6 +124,7 @@ public class CLI {
         System.out.println("\nUser type:");
         System.out.println("1. Individual");
         System.out.println("2. Company");
+        System.out.println("3. Admin"); // TODO: handle admin
         System.out.print("Choice: ");
 
         int typeChoice = input.nextInt();
@@ -149,7 +146,7 @@ public class CLI {
 
         try {
 
-            User currentUser = UserManager.register(type, username, password, legalName, vat);
+            currentUser = system.getUserManager().register(type, username, password, legalName, vat);
             System.out.println("Registration completed! User id: " + currentUser.getId());
         } catch (IllegalArgumentException e) {
             System.out.println("Error: " + e.getMessage());
@@ -161,10 +158,10 @@ public class CLI {
         String userId = input.nextLine();
 
         try {
-            User foundUser = UserManager.findUserById(userId);
+            User foundUser = system.getUserManager().findUserById(userId);
             System.out.println("\nUser found:");
             System.out.println("Name: " + foundUser.getLegalName());
-            System.out.println("Type: " + UserManager.getUserType(userId));
+            System.out.println("Type: " + system.getUserManager().getUserType(userId));
         } catch (IllegalArgumentException e) {// if there is no matching id
             System.out.println("Error: " + e.getMessage());
         }
@@ -202,7 +199,7 @@ public class CLI {
                 }
             }
 
-            AccountManager.createPersonalAccount(user.getId(), countryCode, interestRate, secondaryOwners);
+            system.getAccountManager().createPersonalAccount(user.getId(), countryCode, interestRate, secondaryOwners);
 
             System.out.println("Personal account created successfully!");
         } catch (Exception e) {
@@ -223,7 +220,7 @@ public class CLI {
             double fee = input.nextDouble();
             input.nextLine(); // Clear buffer
 
-            AccountManager.createBusinessAccount(company.getId(), countryCode, interestRate, fee);
+            system.getAccountManager().createBusinessAccount(company.getId(), countryCode, interestRate, fee);
 
             System.out.println("Business account created successfully!");
         } catch (Exception e) {
@@ -235,7 +232,7 @@ public class CLI {
         System.out.print("Enter IBAN to search: ");
         String iban = input.nextLine();
 
-        BankAccount account = AccountManager.findAccountByIBAN(iban);
+        BankAccount account = system.getAccountManager().findAccountByIBAN(iban);
         if (account == null) {
             System.out.println("Account not found");
             return;
