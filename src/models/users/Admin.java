@@ -2,7 +2,7 @@ package models.users;
 
 public class Admin extends User {
 
-    public Admin( String id, String legalName, String userName, String password) {
-        super("Admin",id, legalName, userName, password);
+    public Admin(String legalName, String id, String userName, String password) {
+        super(legalName, id,  userName, password);
     }
 }

@@ -8,11 +8,10 @@ public abstract class User {
     private String legalName;
 
    
-    public User(String legalName ,String id,String type, String userName, String password) {
+    public User(String legalName ,String id,String userName, String password) {
         this.id = id;
         this.userName = userName;
         this.password = password;
-        this.type = type;
         this.legalName = legalName;
 
     }

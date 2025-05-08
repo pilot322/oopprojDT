@@ -18,13 +18,19 @@ public class UserManager extends Manager {
     public UserManager(BankSystem systemref) {
         super(systemref);
         usersMap = new HashMap<>();
-
     }
 
     // User login
     public User login(String username, String password) {
+        // User user = usersByUsername.get(username.toLowerCase());
+        // if (user == null || !user.getPassword().equals(password)) {
+        //     System.out.println(user);
+        //     return null;
+        // }
+        // return user;
+
         for (User user : usersMap.values()) {
-            if (user.getUserName().equals(username) && user.getPassword().equals(password)) {
+            if (user.getUserName().toLowerCase().equals(username.toLowerCase()) && user.getPassword().equals(password)) {
                 return user;
             }
         }
@@ -33,7 +39,6 @@ public class UserManager extends Manager {
 
     // check for already used username
     private boolean isUsernameTaken(String username) {
-
         for (User user : usersMap.values()) {
             if (user.getUserName().equalsIgnoreCase(username)) {
                 return true;
@@ -61,34 +66,32 @@ public class UserManager extends Manager {
         }
 
         // 2. check for taken username
-        if (isUsernameTaken(username)) {
-            throw new IllegalArgumentException("The username '" + username + "already exists");
-        }
-
+        // TODO
+        
         // 3. Create user with type
         User newUser;
-        switch (type.toLowerCase()) {
-            case "admin":
-                newUser = new Admin(generateUserId(), legalName, username, password);
-                break;
-            case "individual":
-                if (vat == null || vat.length() != 9 || !isDigit(vat)) { // VAT check
-                    throw new IllegalArgumentException("VAT must have 9 digits");
-                }
-                newUser = new Individual(generateUserId(), legalName, username, password, vat);
-                break;
-            case "company":
-                if (vat == null || vat.length() != 9 || !isDigit(vat)) {
-                    throw new IllegalArgumentException("VAT must have 9 digits");
-                }
-                newUser = new Company(generateUserId(), legalName, username, password, vat);
-                break;
-            default:
-                throw new IllegalArgumentException("Non valid user type: " + type);
+        if (type.equalsIgnoreCase("Admin")) {
+            if (vat != null) {
+                throw new IllegalArgumentException("Admin cannot have VAT");
+            }
+            newUser = new Admin(legalName, generateUserId(), username, password);
+        } else if (type.equalsIgnoreCase("Individual")) {
+            if (vat == null || vat.length() != 9 || !isDigit(vat)) { // VAT check
+                throw new IllegalArgumentException("VAT must have 9 digits");
+            }
+            newUser = new Individual(legalName, generateUserId(), username, password, vat);
+        } else if (type.equalsIgnoreCase("Company")) {
+            if (vat == null || vat.length() != 9 || !isDigit(vat)) {
+                throw new IllegalArgumentException("VAT must have 9 digits");
+            }
+            newUser = new Company(legalName, generateUserId(), username, password, vat);
+        } else {
+            throw new IllegalArgumentException("Invalid user type: " + type);
         }
 
         // 4. Store the user
         usersMap.put(newUser.getId(), newUser);
+        System.out.printf("Register successful, %s\n", newUser.getUserName());
         return newUser;
     }
 
@@ -105,26 +108,20 @@ public class UserManager extends Manager {
     }
 
     public User findUserById(String userId) {
-        // 1.Search the user where we have store them(HashMap)
-        User user = usersMap.get(userId);
-
-        // 2. if user did not found throw exception
-        if (user == null) {
-            throw new IllegalArgumentException("User did not found by id " + userId);
-        }
-        return user;
+        return usersMap.get(userId);
     }
 
     public String getUserType(String userId) {
-        // 1. find the user
         User user = usersMap.get(userId);
+        if (user == null)
+            throw new NullPointerException();
 
-        // 2.if we cant return "Unknown"
-        if (user == null) {
-            return "Unknown";
-        }
-
-        // 3.return the class of the user
-        return user.getClass().getSimpleName();
+        if (user instanceof Admin)
+            return "Admin";
+        if (user instanceof Individual)
+            return "Individual";
+        if (user instanceof Company)
+            return "Company";
+        throw new IllegalStateException("Unknown user type");
     }
 }

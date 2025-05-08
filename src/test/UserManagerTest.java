@@ -1,4 +1,5 @@
 package test;
+
 import managers.*;
 
 import models.users.Admin;
@@ -6,7 +7,7 @@ import models.users.Company;
 import models.users.Individual;
 import models.users.User;
 import org.junit.Before; // JUnit 4
-import org.junit.Test;  // JUnit 4
+import org.junit.Test; // JUnit 4
 import system.BankSystem;
 
 import static org.junit.Assert.*; // JUnit 4
@@ -15,7 +16,7 @@ public class UserManagerTest {
 
     private BankSystem bankSystem;
     private UserManager userManager;
-    private static int idCounterForTest = 0; // Used to predict IDs if they are sequential strings like "0", "1", ...
+    private static int idCounterForTest = 10000000; // Used to predict IDs if they are sequential strings like "0", "1", ...
 
     private String generateExpectedId() {
         return String.valueOf(idCounterForTest++);
@@ -26,7 +27,7 @@ public class UserManagerTest {
         // Initialize BankSystem, which in turn initializes UserManager
         bankSystem = new BankSystem();
         userManager = bankSystem.getUserManager();
-        idCounterForTest = 0; // Reset for each test
+        idCounterForTest = 10000000; // Reset for each test
     }
 
     // --- Registration Tests ---
@@ -40,7 +41,8 @@ public class UserManagerTest {
         assertNotNull("User should be registered and logged in.", user);
         assertTrue("User should be an instance of Individual.", user instanceof Individual);
         // Assuming User has getLegalName() - This needs to be added to your User class
-        // If User class does not have getLegalName(), you might need to cast and then call it from Admin, Individual, Company
+        // If User class does not have getLegalName(), you might need to cast and then
+        // call it from Admin, Individual, Company
         // For example, if Individual has getLegalName():
         assertEquals("John Doe", ((Individual) user).getLegalName());
         assertEquals("VAT number should match.", "123456789", ((Individual) user).getVAT());
@@ -85,7 +87,8 @@ public class UserManagerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testRegister_AdminWithVAT_ThrowsIllegalArgumentException() {
-        // This test assumes UserManager.register validates that Admins cannot have a VAT.
+        // This test assumes UserManager.register validates that Admins cannot have a
+        // VAT.
         userManager.register("Admin", "adminWithVAT", "pass", "Admin VAT Test", "123456789");
     }
 
@@ -106,7 +109,6 @@ public class UserManagerTest {
         // Assumes VAT is mandatory for Individuals and Companies
         userManager.register("Individual", "userNullVAT", "pass", "User Null VAT", null);
     }
-
 
     // --- Login Tests ---
 
@@ -137,7 +139,7 @@ public class UserManagerTest {
     @Test
     public void testFindUserById_UserExists() {
         String adminExpectedId = generateExpectedId();
-        userManager.register("Admin", "findAdmin", "pass", "Find Admin", null); 
+        userManager.register("Admin", "findAdmin", "pass", "Find Admin", null);
         String indivExpectedId = generateExpectedId();
         userManager.register("Individual", "findIndiv", "pass", "Find Indiv", "456456456");
 
@@ -160,50 +162,50 @@ public class UserManagerTest {
 
     @Test
     public void testGetUserType_Admin() {
-        String expectedId = generateExpectedId();
-        userManager.register("Admin", "typeAdmin", "pass", "Type Admin", null);
-        String userType = userManager.getUserType(expectedId);
+        User u = userManager.register("Admin", "typeAdmin", "pass", "Type Admin", null);
+        String userType = userManager.getUserType(u.getId());
         assertEquals("User type should be Admin.", "Admin", userType);
     }
 
     @Test
     public void testGetUserType_Individual() {
-        String expectedId = generateExpectedId();
-        userManager.register("Individual", "typeIndiv", "pass", "Type Indiv", "789789789");
-        String userType = userManager.getUserType(expectedId);
+        User u = userManager.register("Individual", "typeIndiv", "pass", "Type Indiv", "789789789");
+        String userType = userManager.getUserType(u.getId());
         assertEquals("User type should be Individual.", "Individual", userType);
     }
 
     @Test
     public void testGetUserType_Company() {
-        String expectedId = generateExpectedId();
-        userManager.register("Company", "typeComp", "pass", "Type Comp", "101010101");
-        String userType = userManager.getUserType(expectedId);
+        User u = userManager.register("Company", "typeComp", "pass", "Type Comp", "101010101");
+        String userType = userManager.getUserType(u.getId());
         assertEquals("User type should be Company.", "Company", userType);
     }
 
     @Test(expected = NullPointerException.class) // Or specific "UserNotFoundException" if that's what it throws
     public void testGetUserType_UserNotFound() {
-        // Based on current UserManager.getUserType, this might throw NullPointerException
+        // Based on current UserManager.getUserType, this might throw
+        // NullPointerException
         // if findUserById returns null and then a method is called on it.
         // If findUserById itself throws an exception for not found, or returns null
         // and getUserType handles null by throwing, this would be the test.
         userManager.getUserType("nonExistentId99");
     }
 
-
     // --- isUsernameTaken Tests ---
-    // isUsernameTaken is private, so we test its behavior through the public register method.
+    // isUsernameTaken is private, so we test its behavior through the public
+    // register method.
     @Test(expected = RuntimeException.class)
     public void testIsUsernameTaken_True_CaseInsensitive() {
         userManager.register("Individual", "UniqueUser", "pass", "Unique", "123450987");
-        // Assumes register method internally uses a case-insensitive check for username uniqueness
+        // Assumes register method internally uses a case-insensitive check for username
+        // uniqueness
         userManager.register("Admin", "uniqueuser", "adminpass", "Admin Unique", null);
     }
 
     @Test
     public void testIsUsernameTaken_False() {
-         // We test this by successfully registering a new user, implying the username wasn't taken.
+        // We test this by successfully registering a new user, implying the username
+        // wasn't taken.
         userManager.register("Individual", "newUser", "pass", "New", "000000001");
         User user = userManager.login("newUser", "pass");
         assertNotNull("User should be registered as username is not taken.", user);

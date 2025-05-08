@@ -100,4 +100,8 @@ public class AccountManager extends Manager {
         }
         return results;
     }
+
+    public boolean isOwnerOfBankAccount(String individualId){
+        return false; 
+    }
 }

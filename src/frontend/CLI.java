@@ -24,15 +24,15 @@ public class CLI {
     static BankAccount currentBankAccount;
 
     public static void main(String[] args) {
-
+        system.getUserManager().register("Individual", "test", "abcd", "Test1234", "123456789") ;
         promptToAuthenticate(); // stoxos: user != null gia na paw sto state 4
         if (currentUser == null) {
             System.exit(0);
         }
         if (currentUser instanceof Individual) {
-            // startIndividualMenu();
+            startIndividualMenu();
         } else if (currentUser instanceof Company) {
-
+            companyOperationsMenu();
         } else {
 
         }
@@ -40,11 +40,138 @@ public class CLI {
     }
 
     private static void startIndividualMenu() {
-        System.out.println("Available accounts: (choose one)");
 
-        // TODO: ektypwse me 1, 2, 3 .. ta available bank accounts gia ayton ton xrhsth
-        // choose kai anathesh
+        Individual individual = (Individual) currentUser;
+        ArrayList<PersonalAccount> accounts = system.getAccountManager().findAccountsByIndividualId(individual.getId());
 
+        while (true) {
+            System.out.println("\n=== Your Accounts ===");
+            for (int i = 0; i < accounts.size(); i++) {
+                System.out.printf("%d. %s (Balance: %.2f€)\n", i + 1, accounts.get(i).getIBAN(),
+                        accounts.get(i).getBalance());
+            }
+            System.out.println("0. Exit");
+            System.out.print("Select account: ");
+
+            try {
+                int choice = input.nextInt();
+                input.nextLine(); // Clear buffer
+
+                switch (choice) {
+                    case 0:
+                        System.out.println("Returning to main menu...");
+                        return;
+
+                    default:
+                        if (choice > 0 && choice <= accounts.size()) {
+                            PersonalAccount selectedAccount = accounts.get(choice - 1);
+                            accountOperationsMenu(selectedAccount);
+                        } else {
+                            System.out.println("Invalid choice. Please try again.");
+                        }
+                        break;
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Please enter a valid number.");
+                input.nextLine(); // Clear invalid input
+            }
+        }
+    }
+
+    private static void accountOperationsMenu(PersonalAccount account) {
+        while (true) {
+            System.out.println("\n=== Account: " + account.getIBAN() + " ===");
+            System.out.println("1. View Balance");
+            System.out.println("2. Deposit Money");
+            System.out.println("3. Withdraw Money");
+            System.out.println("4. Account Details");
+            System.out.println("5. Back to Accounts");
+            System.out.print("Choose action: ");
+
+            try {
+                int action = input.nextInt();
+                input.nextLine(); // Clear buffer
+
+                switch (action) {
+                    case 1:
+                        System.out.printf("Current Balance: %.2f€\n", account.getBalance());
+                        break;
+
+                    case 2:
+                        // deposit
+                        break;
+
+                    case 3:
+                        // withdraw
+                        break;
+
+                    case 4:
+                        System.out.println("IBAN: " + account.getIBAN());
+                        System.out.println("Owner: " + account.getOwnerId());
+                        System.out.printf("Balance: %.2f€\n", account.getBalance());
+                        System.out.println("Interest Rate: " + account.getInterestRate() + "%");
+                        System.out.println("Secondary Owners: " + account.getSecondaryOwnerIds());
+                        break;
+
+                    case 5:
+                        return; // Return to accounts list
+
+                    default:
+                        System.out.println("Invalid choice. Please try again.");
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Please enter a valid number.");
+                input.nextLine();
+            }
+        }
+    }
+
+    public static void companyOperationsMenu() {
+        Company company = (Company) currentUser;
+        currentBankAccount = system.getAccountManager().findAccountByBusinessId(company.getId());
+        while (true) {
+            System.out.println("\n=== Company Account ===");
+            System.out.println("1. Deposit");
+            System.out.println("2. Withdraw");
+            System.out.println("3. View Transactions");
+            System.out.println("4. Account Details");
+            System.out.println("5. Back to Main Menu");
+            System.out.print("Choose action: ");
+
+            int choice = input.nextInt();
+
+            do {
+                switch (choice) {
+                    case 1:
+                        // deposit
+                        break;
+
+                    case 2:
+                        // withraw
+                        break;
+
+                    case 3:
+                        System.out.println("=== Transaction History ===");
+
+                        break;
+
+                    case 4:
+                        System.out.println("=== Account Details ===");
+                        System.out.println("IBAN: " + currentBankAccount.getIBAN());
+                        System.out.println("Company ID: " + currentBankAccount.getOwnerId());
+                        System.out.printf("Balance: %.2f€\n",currentBankAccount .getBalance());
+                        System.out.println("Interest Rate: " + currentBankAccount.getInterestRate() + "%");
+                        System.out.println("Monthly Fee: " +((BusinessAccount) currentBankAccount ).getMaintenanceFee() + "€");
+                        break;
+
+                    case 5:
+                        return; // return to menu
+
+                    default:
+                        System.out.println("Invalid choice. Please try again.");
+                }
+            } while (choice == 1 || choice == 2 || choice == 3 || choice == 4 || choice == 5);
+        }
     }
 
     // private static int getMainMenuChoice(User user) {
@@ -71,13 +198,14 @@ public class CLI {
 
     private static void promptToAuthenticate() {
         System.out.println("Bank Of Tuc");
-        System.out.println("1. Register");
-        System.out.println("2. Log in");
+        System.out.println("1. log in");
+        System.out.println("2. Registration");
         System.out.println("3. Exit");
         System.out.print("Choice: ");
+        int choice = input.nextInt();
+        input.nextLine();
+        do {
 
-        try {
-            int choice = input.nextInt();
             switch (choice) {
                 case 1:
                     handleLogin();
@@ -92,31 +220,39 @@ public class CLI {
                 default:
                     System.out.println("Non valid choice");
                     System.exit(0);
-                    // TODO: exit h retry
+
             }
-        } catch (InputMismatchException e) {
-            System.out.println("Error: Please enter a number (1, 2, 3 or  4).");
-            input.next(); // Clear the wrong input
-        }
+        } while (!(choice == 1 || choice == 2 || choice == 3));
     }
+
     // Building on UserManager
 
     private static void handleLogin() {
+        // apeires epanalupseis mexri na ginei to login h exit?
+        while (true) {
+            System.out.print("Username / Company name / Admin name: ");
+            String username = input.nextLine();
 
-        System.out.print("Username/Company name: ");
-        String username = input.nextLine();
+            System.out.print("\nPassword: ");
+            String password = input.nextLine();
 
-        System.out.print("Password: ");
-        String password = input.nextLine();
+            User currentUser = system.getUserManager().login(username, password);
 
-        User currentUser = system.getUserManager().login(username, password);
+            if (currentUser == null) {
+                System.out.println("Wrong username or password.");
 
-        if (currentUser == null) {
-            System.out.println("Wrong username ή password");
+                System.out.print("Try Again (yes/no): ");
+                String choice = input.nextLine().trim().toLowerCase();
 
-            // TODO: exit h retry
-        } else {
-            System.out.println("loged in successfully " + currentUser.getLegalName());
+                if (!choice.equals("yes")) {
+                    System.out.println("Exit");
+                    System.exit(0);
+                }
+
+            } else {
+                System.out.println("Logged in successfully " + currentUser.getLegalName());
+                break;
+            }
         }
     }
 
@@ -124,15 +260,29 @@ public class CLI {
         System.out.println("\nUser type:");
         System.out.println("1. Individual");
         System.out.println("2. Company");
-        System.out.println("3. Admin"); // TODO: handle admin
+        System.out.println("3. Admin");
         System.out.print("Choice: ");
 
         int typeChoice = input.nextInt();
         input.nextLine(); // Clear buffer
 
-        String type = (typeChoice == 1) ? "Individual" : "Company";
+        String type;
+        switch (typeChoice) {
+            case 1:
+                type = "Individual";
+                break;
+            case 2:
+                type = "Company";
+                break;
+            case 3:
+                type = "Admin";
+                break;
+            default:
+                System.out.println("Invalid choice. Defaulting to Individual.");
+                type = "Individual";
+        }
 
-        System.out.print("Name and surname/ Company name: ");
+        System.out.print("Name and surname/Company name: ");
         String legalName = input.nextLine();
 
         System.out.print("Username: ");
@@ -141,11 +291,14 @@ public class CLI {
         System.out.print("Password: ");
         String password = input.nextLine();
 
-        System.out.print("Vat(9 digits): ");
-        String vat = input.nextLine();
+        // VAT only required for Individual/Company
+        String vat = null;
+        if (!type.equals("Admin")) {
+            System.out.print("VAT (9 digits): ");
+            vat = input.nextLine();
+        }
 
         try {
-
             currentUser = system.getUserManager().register(type, username, password, legalName, vat);
             System.out.println("Registration completed! User id: " + currentUser.getId());
         } catch (IllegalArgumentException e) {
