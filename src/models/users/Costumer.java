@@ -13,4 +13,16 @@ public class Costumer extends User {
         return VAT;
     }
 
+    @Override
+    public String marshal() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'marshal'");
+    }
+
+    @Override
+    public void unmarshal(String data) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'unmarshal'");
+    }
+
 }

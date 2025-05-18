@@ -28,12 +28,14 @@ public class CLI {
 
     public static void main(String[] args) {
         // test logic
-        User user1 = system.getUserManager().register("Individual", "test", "abcd", "Test1234", "123456789");
-        system.getAccountManager().createPersonalAccount(user1.getId(), "GR", 1, null);
+        User admin1 = system.getUserManager().register("Admin", "test", "abcd", "Test1234", null);
+       
+        // User user1 = system.getUserManager().register("Individual", "test", "abcd", "Test1234", "123456789");
+        // system.getAccountManager().createPersonalAccount(user1.getId(), "GR", 1, null);
         
-        User user2 = system.getUserManager().register("Company", "test2", "abcd", "Test1234", "987654321");
-        system.getAccountManager().createBusinessAccount(user2.getId(), "AL", 10);
-        // ontws to CLI ksekinaei edw
+        // User user2 = system.getUserManager().register("Company", "test2", "abcd", "Test1234", "987654321");
+        // system.getAccountManager().createBusinessAccount(user2.getId(), "AL", 10);
+        // // ontws to CLI ksekinaei edw
         promptToAuthenticate(); // stoxos: user != null gia na paw sto state 4
         if (currentUser == null) {
             System.exit(0);
