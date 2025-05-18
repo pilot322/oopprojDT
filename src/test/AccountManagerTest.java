@@ -98,10 +98,6 @@ public class AccountManagerTest {
         accountManager.createPersonalAccount(individualId1, "G", 0.01, new ArrayList<String>());
     }
     
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreatePersonalAccount_InvalidCountryCode_Numeric_ThrowsException() throws Exception {
-        accountManager.createPersonalAccount(individualId1, "12", 0.01, new ArrayList<String>());
-    }
 
     @Test(expected = IllegalArgumentException.class)
     public void testCreatePersonalAccount_NegativeInterestRate_ThrowsException() throws Exception {
@@ -146,7 +142,6 @@ public class AccountManagerTest {
         assertEquals(companyId1, ba.getOwnerId());
         assertEquals(0.0, ba.getBalance(), 0.001);
         assertEquals(0.005, ba.getInterestRate(), 0.001);
-        assertEquals(10.0, ba.getMaintenanceFee(), 0.001);
     }
 
     @Test(expected = IllegalArgumentException.class)

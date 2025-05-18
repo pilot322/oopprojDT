@@ -2,14 +2,17 @@ package frontend;
 
 import java.util.ArrayList;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Scanner;
 
 import models.users.Individual;
 import models.users.Company;
+import models.users.Costumer;
 import models.users.Admin;
 import models.users.User;
 import models.accounts.BankAccount;
 import models.accounts.PersonalAccount;
+import models.statements.AccountStatement;
 import models.accounts.BusinessAccount;
 import managers.UserManager;
 import managers.AccountManager;
@@ -24,7 +27,13 @@ public class CLI {
     static BankAccount currentBankAccount;
 
     public static void main(String[] args) {
-        system.getUserManager().register("Individual", "test", "abcd", "Test1234", "123456789") ;
+        // test logic
+        User user1 = system.getUserManager().register("Individual", "test", "abcd", "Test1234", "123456789");
+        system.getAccountManager().createPersonalAccount(user1.getId(), "GR", 1, null);
+        
+        User user2 = system.getUserManager().register("Company", "test2", "abcd", "Test1234", "987654321");
+        system.getAccountManager().createBusinessAccount(user2.getId(), "AL", 10);
+        // ontws to CLI ksekinaei edw
         promptToAuthenticate(); // stoxos: user != null gia na paw sto state 4
         if (currentUser == null) {
             System.exit(0);
@@ -33,10 +42,159 @@ public class CLI {
             startIndividualMenu();
         } else if (currentUser instanceof Company) {
             companyOperationsMenu();
-        } else {
-
+        } else if (currentUser instanceof Admin) {
+            startAdminMenu();
         }
 
+    }
+
+    private static void startAdminMenu() {
+        while (true) {
+            System.out.println("\n=== Admin Menu ===");
+            System.out.println("1. Show All Customers");
+            System.out.println("2. Show Customer Details");
+            System.out.println("3. Show All Bank Accounts");
+            System.out.println("4. Show Bank Account Info");
+            System.out.println("5. Show Bank Account Statements");
+            ;
+            System.out.println("0. Exit");
+            System.out.print("Choose action: ");
+
+            try {
+                int choice = input.nextInt();
+                input.nextLine(); // clear buffer
+
+                switch (choice) {
+                    case 1:
+                        showAllCustomers();
+                        break;
+                    case 2:
+                        showCostumerDetails();
+                        break;
+                    case 3:
+                        showAllBankAccounts();
+                        break;
+                    case 4:
+                        showBankAccountInfo();
+                        break;
+                    case 5:
+                        showBankAccountStatements();
+                        break;
+                    case 0:
+                        return;
+                    default:
+                        System.out.println("Invalid choice. Try again.");
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Please enter a valid number.");
+                input.nextLine(); // Clear invalid input
+            }
+        }
+    }
+
+    // Δείχνει λίστα όλων των πελατών με βασικά στοιχεία.
+    private static void showAllCustomers() {
+        System.out.println("\n=== All Customers ===");
+
+        for (User user : system.getUserManager().getAllUsers()) {
+            if (user instanceof Individual || user instanceof Company) {
+                System.out.println("ID: " + user.getId()
+                        + ", Name: " + user.getLegalName()
+                        + ", Username: " + user.getUserName()
+                        + ", Type: " + (user instanceof Individual ? "Individual" : "Company"));
+            }
+        }
+    }
+
+    // Δείχνει αναλυτικά στοιχεία για συγκεκριμένο πελάτη που επιλέγει ο admin
+    private static void showCostumerDetails() {
+        System.out.print("\nEnter Customer ID: ");
+        String id = input.nextLine();
+
+        User user = system.getUserManager().findUserById(id);
+
+        if (user == null) {
+            System.out.println("No customer found with that ID.");
+            return;
+        }
+
+        if (!(user instanceof Individual || user instanceof Company)) {
+            System.out.println("This user is not a customer.");
+            return;
+        }
+
+        System.out.println("\n=== Customer Details ===");
+        System.out.println("ID: " + user.getId());
+        System.out.println("Name: " + user.getLegalName());
+        System.out.println("Username: " + user.getUserName());
+        System.out.println("Type: " + (user instanceof Individual ? "Individual" : "Company"));
+
+        // casting για να καλεσω getVat() που ειναι ορισμενη στο customer
+        Costumer customer = (Costumer) user;
+        System.out.println("VAT: " + customer.getVAT());
+    }
+
+    private static void showAllBankAccounts() {
+        System.out.println("\n=== All Bank Accounts ===");
+
+        ArrayList<BankAccount> accounts = system.getAccountManager().getAllAccounts();
+
+        for (BankAccount acc : accounts) {
+            System.out.println("IBAN: " + acc.getIBAN()
+                    + ", Owner ID: " + acc.getOwnerId()
+                    + ", Balance: " + String.format("%.2f€", acc.getBalance()));
+        }
+    }
+
+    // Ο admin δίνει ένα IBAN και βλέπει όλες τις πληροφορίες του λογαριασμού
+    private static void showBankAccountInfo() {
+        System.out.print("\nEnter IBAN: ");
+        String iban = input.nextLine();
+
+        BankAccount acc = system.getAccountManager().findAccountByIBAN(iban);
+
+        if (acc == null) {
+            System.out.println("No account found with that IBAN.");
+            return;
+        }
+
+        System.out.println("\n=== Account Info ===");
+        System.out.println("IBAN: " + acc.getIBAN());
+        System.out.println("Owner ID: " + acc.getOwnerId());
+        System.out.printf("Balance: %.2f€\n", acc.getBalance());
+        System.out.println("Interest Rate: " + acc.getInterestRate() + "%");
+
+        if (acc instanceof PersonalAccount) {
+            System.out.println("Type: Personal");
+            System.out.println("Secondary Owners: " + ((PersonalAccount) acc).getSecondaryOwnerIds());
+        } else if (acc instanceof BusinessAccount) {
+            System.out.println("Type: Business");
+            System.out.println("Monthly Fee: " + ((BusinessAccount) acc).getMaintenanceFee() + "€");
+        }
+    }
+
+    private static void showBankAccountStatements() {
+        System.out.print("\nEnter IBAN: ");
+        String iban = input.nextLine();
+
+        BankAccount acc = system.getAccountManager().findAccountByIBAN(iban);
+
+        if (acc == null) {
+            System.out.println("No account found with that IBAN.");
+            return;
+        }
+
+        List<AccountStatement> statements = system.getAccountStatementManager().getStatements(iban);
+
+        if (statements.isEmpty()) {
+            System.out.println("No statements found for this account.");
+            return;
+        }
+
+        System.out.println("\n=== Account Statements ===");
+        for (AccountStatement st : statements) {
+            System.out.println(st); // Αν η toString() στην AccountStatement είναι σωστά ορισμένη
+        }
     }
 
     private static void startIndividualMenu() {
@@ -50,7 +208,9 @@ public class CLI {
                 System.out.printf("%d. %s (Balance: %.2f€)\n", i + 1, accounts.get(i).getIBAN(),
                         accounts.get(i).getBalance());
             }
-            System.out.println("0. Exit");
+            System.out.println("-1. Exit");
+            System.out.println("0. Create new personal account.");
+
             System.out.print("Select account: ");
 
             try {
@@ -129,6 +289,9 @@ public class CLI {
     public static void companyOperationsMenu() {
         Company company = (Company) currentUser;
         currentBankAccount = system.getAccountManager().findAccountByBusinessId(company.getId());
+
+        // an den yparxei?
+
         while (true) {
             System.out.println("\n=== Company Account ===");
             System.out.println("1. Deposit");
@@ -138,9 +301,11 @@ public class CLI {
             System.out.println("5. Back to Main Menu");
             System.out.print("Choose action: ");
 
-            int choice = input.nextInt();
+            int choice;
 
             do {
+                choice = input.nextInt();
+
                 switch (choice) {
                     case 1:
                         // deposit
@@ -159,9 +324,10 @@ public class CLI {
                         System.out.println("=== Account Details ===");
                         System.out.println("IBAN: " + currentBankAccount.getIBAN());
                         System.out.println("Company ID: " + currentBankAccount.getOwnerId());
-                        System.out.printf("Balance: %.2f€\n",currentBankAccount .getBalance());
+                        System.out.printf("Balance: %.2f€\n", currentBankAccount.getBalance());
                         System.out.println("Interest Rate: " + currentBankAccount.getInterestRate() + "%");
-                        System.out.println("Monthly Fee: " +((BusinessAccount) currentBankAccount ).getMaintenanceFee() + "€");
+                        System.out.println(
+                                "Monthly Fee: " + ((BusinessAccount) currentBankAccount).getMaintenanceFee() + "€");
                         break;
 
                     case 5:
@@ -170,7 +336,7 @@ public class CLI {
                     default:
                         System.out.println("Invalid choice. Please try again.");
                 }
-            } while (choice == 1 || choice == 2 || choice == 3 || choice == 4 || choice == 5);
+            } while ( !(choice == 1 || choice == 2 || choice == 3 || choice == 4 || choice == 5));
         }
     }
 
@@ -202,10 +368,10 @@ public class CLI {
         System.out.println("2. Registration");
         System.out.println("3. Exit");
         System.out.print("Choice: ");
-        int choice = input.nextInt();
-        input.nextLine();
+        int choice;
         do {
-
+            choice = input.nextInt();
+            input.nextLine();
             switch (choice) {
                 case 1:
                     handleLogin();
@@ -219,7 +385,7 @@ public class CLI {
                     break;
                 default:
                     System.out.println("Non valid choice");
-                    System.exit(0);
+                    // System.exit(0);
 
             }
         } while (!(choice == 1 || choice == 2 || choice == 3));
@@ -236,7 +402,7 @@ public class CLI {
             System.out.print("\nPassword: ");
             String password = input.nextLine();
 
-            User currentUser = system.getUserManager().login(username, password);
+           currentUser = system.getUserManager().login(username, password);
 
             if (currentUser == null) {
                 System.out.println("Wrong username or password.");
@@ -369,11 +535,7 @@ public class CLI {
             System.out.print("Enter interest rate (e.g. 1.5): ");
             double interestRate = input.nextDouble();
 
-            System.out.print("Enter monthly maintenance fee: ");
-            double fee = input.nextDouble();
-            input.nextLine(); // Clear buffer
-
-            system.getAccountManager().createBusinessAccount(company.getId(), countryCode, interestRate, fee);
+            system.getAccountManager().createBusinessAccount(company.getId(), countryCode, interestRate);
 
             System.out.println("Business account created successfully!");
         } catch (Exception e) {

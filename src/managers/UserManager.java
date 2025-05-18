@@ -2,6 +2,7 @@ package managers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import models.users.Admin;
@@ -24,13 +25,14 @@ public class UserManager extends Manager {
     public User login(String username, String password) {
         // User user = usersByUsername.get(username.toLowerCase());
         // if (user == null || !user.getPassword().equals(password)) {
-        //     System.out.println(user);
-        //     return null;
+        // System.out.println(user);
+        // return null;
         // }
         // return user;
 
         for (User user : usersMap.values()) {
-            if (user.getUserName().toLowerCase().equals(username.toLowerCase()) && user.getPassword().equals(password)) {
+            if (user.getUserName().toLowerCase().equals(username.toLowerCase())
+                    && user.getPassword().equals(password)) {
                 return user;
             }
         }
@@ -66,15 +68,17 @@ public class UserManager extends Manager {
         }
 
         // 2. check for taken username
-        // TODO
-        
+        if (isUsernameTaken(username)) {
+            throw new IllegalArgumentException("The username '" + username + "' already exists");
+        }
+
         // 3. Create user with type
         User newUser;
         if (type.equalsIgnoreCase("Admin")) {
             if (vat != null) {
                 throw new IllegalArgumentException("Admin cannot have VAT");
             }
-            newUser = new Admin(legalName, generateUserId(), username, password);
+            newUser = new   Admin(legalName, generateUserId(), username, password);
         } else if (type.equalsIgnoreCase("Individual")) {
             if (vat == null || vat.length() != 9 || !isDigit(vat)) { // VAT check
                 throw new IllegalArgumentException("VAT must have 9 digits");
@@ -123,5 +127,9 @@ public class UserManager extends Manager {
         if (user instanceof Company)
             return "Company";
         throw new IllegalStateException("Unknown user type");
+    }
+
+    public List<User> getAllUsers(){
+        return new ArrayList<>(usersMap.values());
     }
 }

@@ -3,9 +3,9 @@ package models.bills;
 import java.time.LocalDateTime;
 
 public class Bill {
-    private final int id;
-    private final int businessId;
-    private final int customerId;
+    private final String id;
+    private final String businessId;
+    private final String customerId;
     private final String RF;
     private final double amount;
     private final LocalDateTime timePublished;
@@ -13,7 +13,7 @@ public class Bill {
     private boolean active;
     private boolean isPaid;
 
-    public Bill(int id, int businessId, int customerId, String RF,
+    public Bill(String id, String businessId, String customerId, String RF,
             double amount, LocalDateTime timePublished,
             LocalDateTime expireTime) {
         this.id = id;
@@ -27,15 +27,15 @@ public class Bill {
         this.isPaid = false;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public int getBusinessId() {
+    public String getBusinessId() {
         return businessId;
     }
 
-    public int getCustomerId() {
+    public String getCustomerId() {
         return customerId;
     }
 

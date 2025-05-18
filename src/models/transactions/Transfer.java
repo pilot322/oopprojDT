@@ -20,34 +20,48 @@ public class Transfer extends TwoWay {
 
         try {
             // 1. Έλεγχος αν οι λογαριασμοί αποστολέα και παραλήπτη υπάρχουν
-            // BankAccount senderAccount =
-            // systemRef.getAccountManager().findAccountByIBAN(senderIBAN);
-            // BankAccount receiverAccount =
-            // systemRef.getAccountManager().findAccountByIBAN(receiverIBAN);
+            BankAccount senderAccount = systemRef.getAccountManager().findAccountByIBAN(senderIBAN);
+            BankAccount receiverAccount = systemRef.getAccountManager().findAccountByIBAN(receiverIBAN);
 
-            // if (senderAccount == null || receiverAccount == null) {
-            // return false; // Λογαριασμός δεν βρέθηκε
-            // }
+            if (senderAccount == null || receiverAccount == null) {
+                throw new IllegalArgumentException("Sender or receiver account does not exist.");
+            }
 
-            // // 2. Έλεγχος αν το υπόλοιπο του αποστολέα είναι επαρκές
-            // if (senderAccount.getBalance() < amount) {
-            // return false; // Ανεπαρκές υπόλοιπο
-            // }
+            // 2. Έλεγχος εγκυρότητας ποσού
+            if (amount <= 0) {
+                throw new IllegalArgumentException("Amount must be greater than zero.");
+            }
 
-            // // 3. Εκτέλεση της μεταφοράς (Αφαίρεση από αποστολέα και προσθήκη στον
-            // παραλήπτη)
-            // senderAccount.removeFromBalance(amount);
-            // receiverAccount.addToBalance(amount);
+            // 3. Έλεγχος αν το υπόλοιπο του αποστολέα είναι επαρκές
+            if (senderAccount.getBalance() < amount) {
+                throw new IllegalArgumentException("Insufficient balance in sender account.");
+            }
 
-            // // 4. Δημιουργία statement για τον αποστολέα και τον παραλήπτη
-            // AccountStatementManager accStmtManager =
-            // systemRef.getAccountStatementManager();
-            // accStmtManager.addStatement(senderIBAN, transactorId, senderDescription,
-            // -amount, senderAccount.getBalance(), "TRANSFER_OUT", receiverIBAN);
-            // accStmtManager.addStatement(receiverIBAN, transactorId, receiverDescription,
-            // amount, receiverAccount.getBalance(), "TRANSFER_IN", senderIBAN);
+            // 4. Εκτέλεση μεταφοράς
+            senderAccount.removeFromBalance(amount);
+            receiverAccount.addToBalance(amount);
 
-            // executed = true;
+            // 5. Καταγραφή συναλλαγών
+            AccountStatementManager statementManager = systemRef.getAccountStatementManager();
+            statementManager.addStatement(
+                    senderIBAN,
+                    transactorId,
+                    senderDescription,
+                    -amount,
+                    senderAccount.getBalance(),
+                    "transfer_out",
+                    receiverIBAN);
+
+            statementManager.addStatement(
+                    receiverIBAN,
+                    transactorId,
+                    receiverDescription,
+                    amount,
+                    receiverAccount.getBalance(),
+                    "transfer_in",
+                    senderIBAN);
+
+            executed = true;
             return true;
         } catch (Exception e) {
             return false;

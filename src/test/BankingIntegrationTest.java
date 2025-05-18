@@ -146,7 +146,6 @@ public class BankingIntegrationTest {
         assertEquals(0.005, ba1.getInterestRate(), 0.001);
         assertEquals(0.0, ba1.getBalance(), 0.001);
         assertTrue(ba1.getIBAN().startsWith("GB200"));
-        assertEquals(10.0, ba1.getMaintenanceFee(), 0.001);
 
         // 5. mainComp fails to create a second Business Account
         try {

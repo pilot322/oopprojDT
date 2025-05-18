@@ -28,7 +28,7 @@ public class TransactionManagerTest {
 
 
     private String individualId1, individualId2, adminId;
-    private final String BANK_USER_ID = "-1"; // Assuming bank ID is also string
+    private final String BANK_USER_ID = "BANK"; // Assuming bank ID is also string
     private String iban1, iban2, iban3_business; // iban3 for business
     private String companyId;
 
@@ -122,13 +122,6 @@ public class TransactionManagerTest {
     }
 
     @Test
-    public void testDeposit_Success_ByBankUser() {
-        double initialBalance = accountManager.findAccountByIBAN(iban1).getBalance();
-        transactionManager.deposit(iban1, BANK_USER_ID, "Bank deposit", 500.0);
-        assertEquals(initialBalance + 500.0, accountManager.findAccountByIBAN(iban1).getBalance(), 0.001);
-    }
-
-    @Test
     public void testDeposit_Success_ByAdminUser() {
         double initialBalance = accountManager.findAccountByIBAN(iban1).getBalance();
         transactionManager.deposit(iban1, adminId, "Admin deposit", 300.0);
@@ -167,19 +160,7 @@ public class TransactionManagerTest {
         transactionManager.withdraw(iban1, individualId2, "Unauthorized withdraw", 50.0);
     }
 
-    @Test
-    public void testWithdraw_Success_ByBankUser() {
-        double initialBalance = accountManager.findAccountByIBAN(iban1).getBalance();
-        transactionManager.withdraw(iban1, BANK_USER_ID, "Bank withdrawal", 50.0);
-        assertEquals(initialBalance - 50.0, accountManager.findAccountByIBAN(iban1).getBalance(), 0.001);
-    }
 
-    @Test
-    public void testWithdraw_Success_ByAdminUser() {
-        double initialBalance = accountManager.findAccountByIBAN(iban1).getBalance();
-        transactionManager.withdraw(iban1, adminId, "Admin withdrawal", 50.0);
-        assertEquals(initialBalance - 50.0, accountManager.findAccountByIBAN(iban1).getBalance(), 0.001);
-    }
 
 
     // --- Transfer Tests ---

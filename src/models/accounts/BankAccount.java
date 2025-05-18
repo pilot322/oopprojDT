@@ -21,25 +21,25 @@ public abstract class BankAccount {
         return ownerId;
     }
 
-
     public double getBalance() {
         return balance;
     }
-
 
     public double getInterestRate() {
         return interestRate;
     }
 
-    public boolean addToBalance(double amount){
-        if(amount < 0) return false;
-        
+    public boolean addToBalance(double amount) {
+        if (amount < 0)
+            return false;
+
         this.balance += amount;
         return true;
     }
 
-    public boolean removeFromBalance(double amount){
-        if(amount < 0 || this.balance - amount < 0) return false;
+    public boolean removeFromBalance(double amount) {
+        if (amount < 0 || this.balance - amount < 0)
+            return false;
         this.balance -= amount;
         return true;
     }

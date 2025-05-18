@@ -109,7 +109,7 @@ public class AccountStatementManagerTest {
         Thread.sleep(10); // Introduce a small delay for distinct timestamps
 
         LocalDateTime time2 = LocalDateTime.now();
-        accountStatementManager.addStatement(testIBAN1, testUserId1, "Op 2", -20.0, 30.0, "withdraw", null);
+        accountStatementManager.addStatement(testIBAN1, testUserId1, "Op 2", 20.0, 30.0, "withdraw", null);
         Thread.sleep(10);
 
         LocalDateTime time3 = LocalDateTime.now();

@@ -24,7 +24,7 @@ public class TransactionIntegrationTest {
     private BillManager billManager; // For bill payment scenario
 
     private String userIdIndivA, userIdIndivB, userIdCompA, adminId;
-    private final String BANK_ID = "-1"; // Assuming bank ID is also a string
+    private final String BANK_ID = "BANK"; // Assuming bank ID is also a string
     private String ibanIndivA, ibanIndivB, ibanCompA;
 
     @Before
@@ -37,13 +37,13 @@ public class TransactionIntegrationTest {
         billManager = bankSystem.getBillManager();
 
         // Users
-        userManager.register("Individual", "indivA", "passA", "Individual A", "10000000A");
+        userManager.register("Individual", "indivA", "passA", "Individual A", "100000001");
         userIdIndivA = userManager.login("indivA", "passA").getId();
 
-        userManager.register("Individual", "indivB", "passB", "Individual B", "10000000B");
+        userManager.register("Individual", "indivB", "passB", "Individual B", "100000002");
         userIdIndivB = userManager.login("indivB", "passB").getId();
 
-        userManager.register("Company", "compA", "passC", "Company A", "20000000A");
+        userManager.register("Company", "compA", "passC", "Company A", "200000001");
         userIdCompA = userManager.login("compA", "passC").getId();
 
         userManager.register("Admin", "adminX", "passX", "Admin X", null);
