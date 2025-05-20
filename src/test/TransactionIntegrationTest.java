@@ -61,7 +61,7 @@ public class TransactionIntegrationTest {
     }
 
     @Test
-    public void scenario1_IndividualDepositWithdrawStatementCheck() {
+    public void scenario1_IndividualDepositWithdrawStatementCheck()  throws Exception {
         // 1. Fund IndivA's account
         transactionManager.deposit(ibanIndivA, BANK_ID, "Initial funding", 500.0);
         BankAccount accA = accountManager.findAccountByIBAN(ibanIndivA);
@@ -102,7 +102,7 @@ public class TransactionIntegrationTest {
     }
 
     @Test
-    public void scenario2_CompanyAndInterAccountTransferByAdmin() {
+    public void scenario2_CompanyAndInterAccountTransferByAdmin()  throws Exception {
         // 1. Fund Company A's account by Bank
         transactionManager.deposit(ibanCompA, BANK_ID, "Seed funding for CompA", 2000.0);
         BankAccount accCompA = accountManager.findAccountByIBAN(ibanCompA);
@@ -275,7 +275,7 @@ public class TransactionIntegrationTest {
 
 
     @Test
-    public void scenario4_MultipleTransactionsStatementOrderAndBalanceAfter() throws InterruptedException {
+    public void scenario4_MultipleTransactionsStatementOrderAndBalanceAfter()  throws Exception {
         // Fund account
         transactionManager.deposit(ibanIndivA, BANK_ID, "Funding", 1000.0); // Bal: 1000
         List<AccountStatement> stmts;
@@ -341,7 +341,7 @@ public class TransactionIntegrationTest {
     }
 
     @Test
-    public void scenario5_UnauthorizedAttemptsAndOverrides() {
+    public void scenario5_UnauthorizedAttemptsAndOverrides() throws Exception  {
         // 1. Fund accountA (ibanIndivA)
         transactionManager.deposit(ibanIndivA, BANK_ID, "Initial", 300.0);
         BankAccount accA = accountManager.findAccountByIBAN(ibanIndivA);

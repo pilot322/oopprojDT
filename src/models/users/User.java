@@ -1,13 +1,11 @@
 package models.users;
 
-import models.Storable;
-
-public abstract class User implements Storable {
-    protected String id;
-    protected String userName;
-    protected String password;
+public abstract class User {
+    private String id;
+    private String userName;
+    private String password;
     private String type;
-    protected String legalName;
+    private String legalName;
 
    
     public User(String legalName ,String id,String userName, String password) {

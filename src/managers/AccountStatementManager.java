@@ -61,7 +61,7 @@ public class AccountStatementManager extends Manager {
         AccountStatement newStatement = new AccountStatement(
                 ++statementCounter,
                 accountIBAN,
-                java.time.LocalDateTime.now(),
+                systemRef.getTime(),
                 transactorId,
                 description,
                 type,
@@ -79,11 +79,12 @@ public class AccountStatementManager extends Manager {
 
         // tha prepei to statement na mpainei sthn katallhlh thesh
         // pws tha vrw thn katallhlh thesh?
-        for(int i = 0; i < accountStatements.size(); i++){
+        for (int i = 0; i < accountStatements.size(); i++) {
             AccountStatement st = accountStatements.get(i);
             // thelw na valw to newAccountStatement sthn thesh PRIN apo to prwto
-            // statement poy tha vrei kai einai "mikrotero", dld einai "prin" ap'to kainoyrio
-            if(newStatement.getTransactionTime().isAfter(st.getTransactionTime())){
+            // statement poy tha vrei kai einai "mikrotero", dld einai "prin" ap'to
+            // kainoyrio
+            if (newStatement.getTransactionTime().isAfter(st.getTransactionTime())) {
                 accountStatements.add(i, newStatement);
                 return true;
             }

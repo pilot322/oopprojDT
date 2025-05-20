@@ -1,22 +1,19 @@
 package managers;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import models.Storable;
 import models.users.Admin;
 import models.users.Company;
 import models.users.Individual;
 import models.users.User;
 import system.BankSystem;
 
-public class UserManager extends Manager implements StorageManager {
+public class UserManager extends Manager {
     private final Map<String, User> usersMap;
-    private String usersFilePath = "data/users/users.csv";
+
     private int nextId = 0; // ayto aplws krataei to posa users esxoyn dhmioyrghthei
 
     public UserManager(BankSystem systemref) {
@@ -61,7 +58,6 @@ public class UserManager extends Manager implements StorageManager {
         return userId;
     }
 
-    // C
     public User register(String type, String username, String password, String legalName, String vat)
             throws IllegalArgumentException {
 
@@ -82,7 +78,7 @@ public class UserManager extends Manager implements StorageManager {
             if (vat != null) {
                 throw new IllegalArgumentException("Admin cannot have VAT");
             }
-            newUser = new   Admin(legalName, generateUserId(), username, password);
+            newUser = new Admin(legalName, generateUserId(), username, password);
         } else if (type.equalsIgnoreCase("Individual")) {
             if (vat == null || vat.length() != 9 || !isDigit(vat)) { // VAT check
                 throw new IllegalArgumentException("VAT must have 9 digits");
@@ -99,9 +95,11 @@ public class UserManager extends Manager implements StorageManager {
 
         // 4. Store the user
         usersMap.put(newUser.getId(), newUser);
-        System.out.printf("Register successful, %s\n", newUser.getUserName());
+        System.out.printf("Register successful, %s %s\n", newUser.getUserName(), newUser.getId());
 
-        save(newUser, usersFilePath, true);
+        for (String id : usersMap.keySet()) {
+            System.out.println("key: " + id);
+        }
 
         return newUser;
     }
@@ -136,46 +134,7 @@ public class UserManager extends Manager implements StorageManager {
         throw new IllegalStateException("Unknown user type");
     }
 
-    public List<User> getAllUsers(){
+    public List<User> getAllUsers() {
         return new ArrayList<>(usersMap.values());
-    }
-
-    @Override
-    public void load(Storable s, String filePath) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'load'");
-    }
-
-    @Override
-    public void save(Storable s, String filePath, boolean append) {
-        // kseroyme oti to append tha einai panta true
-        // kseroyme oti to s einai User
-        if(!(s instanceof User)){
-            return;
-        }
-
-        Path p = Path.of(filePath);
-
-        List<String> lines = null;
-        // 1. prwta prepei na diavaseis ola ta periexomena toy arxeioy (mia lista me oles tis grammes)
-        try {
-            lines = Files.readAllLines(p);
-        } catch(Exception e){
-            e.printStackTrace();
-            return;
-        }
-
-        // 2. meta prepei na prostheseis mia grammh sto telos me to kainoyrio user
-        lines.add(s.marshal());
-
-
-        // 3. kai na grapseis oles tis grammes sto arxeio (svhnwntas tis palies)
-        try {
-            Files.write(p, lines);
-        } catch(Exception e){
-            e.printStackTrace();
-            return;
-        }
-        
     }
 }

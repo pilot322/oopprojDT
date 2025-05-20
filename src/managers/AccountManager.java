@@ -1,7 +1,6 @@
 package managers;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 import models.accounts.BankAccount;
@@ -165,13 +164,14 @@ public class AccountManager extends Manager {
         }
 
         // Έλεγχος αν είναι στους δευτερεύοντες ιδιοκτήτες
-        if(ba instanceof PersonalAccount){
+        if (ba instanceof PersonalAccount) {
             return ((PersonalAccount) ba).getSecondaryOwnerIds().contains(individualId);
         }
 
         return false;
 
     }
+
     public ArrayList<BankAccount> getAllAccounts() {
         return new ArrayList<>(bankAccountList);
     }

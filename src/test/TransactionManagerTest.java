@@ -74,7 +74,7 @@ public class TransactionManagerTest {
 
     // --- Deposit Tests ---
     @Test
-    public void testDeposit_Success() {
+    public void testDeposit_Success() throws Exception {
         double initialBalance = accountManager.findAccountByIBAN(iban2).getBalance();
         transactionManager.deposit(iban2, individualId2, "Initial deposit", 200.0);
         assertEquals(initialBalance + 200.0, accountManager.findAccountByIBAN(iban2).getBalance(), 0.001);
@@ -85,17 +85,17 @@ public class TransactionManagerTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testDeposit_InvalidAccountIBAN_ThrowsException() {
+    public void testDeposit_InvalidAccountIBAN_ThrowsException()  throws Exception  {
         transactionManager.deposit("INVALID_IBAN", individualId1, "Deposit fail", 100.0);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testDeposit_NonExistentTransactorId_ThrowsException() {
+    public void testDeposit_NonExistentTransactorId_ThrowsException()   throws Exception {
         transactionManager.deposit(iban1, "999", "Deposit fail", 100.0);
     }
     
     @Test
-    public void testDeposit_UnrelatedTransactor_Allowed() {
+    public void testDeposit_UnrelatedTransactor_Allowed()  throws Exception {
         // individualId2 trying to deposit into iban1 (owned by individualId1)
         // Deposits are generally allowed by anyone into any account.
         // The transactorId is for logging who initiated it.
@@ -112,17 +112,17 @@ public class TransactionManagerTest {
 
 
     @Test(expected = IllegalArgumentException.class)
-    public void testDeposit_NegativeAmount_ThrowsException() {
+    public void testDeposit_NegativeAmount_ThrowsException()  throws Exception {
         transactionManager.deposit(iban1, individualId1, "Negative deposit", -50.0);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testDeposit_ZeroAmount_ThrowsException() {
+    public void testDeposit_ZeroAmount_ThrowsException() throws Exception  {
         transactionManager.deposit(iban1, individualId1, "Zero deposit", 0.0);
     }
 
     @Test
-    public void testDeposit_Success_ByAdminUser() {
+    public void testDeposit_Success_ByAdminUser()  throws Exception {
         double initialBalance = accountManager.findAccountByIBAN(iban1).getBalance();
         transactionManager.deposit(iban1, adminId, "Admin deposit", 300.0);
         assertEquals(initialBalance + 300.0, accountManager.findAccountByIBAN(iban1).getBalance(), 0.001);

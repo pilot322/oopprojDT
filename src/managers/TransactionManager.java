@@ -3,7 +3,7 @@ package managers;
 import models.accounts.BankAccount;
 import models.bills.Bill;
 import models.users.Admin;
-import models.users.User;
+
 import system.BankSystem;
 
 public class TransactionManager extends Manager {
@@ -53,7 +53,7 @@ public class TransactionManager extends Manager {
      * 
      * @return true αν η κατάθεση ολοκληρώθηκε επιτυχώς
      */
-    public boolean deposit(String accountIBAN, String transactorId, String description, double amount) {
+    public void deposit(String accountIBAN, String transactorId, String description, double amount) throws Exception {
         // Έλεγχος εγκυρότητας λογαριασμού
         BankAccount account = systemRef.getAccountManager().findAccountByIBAN(accountIBAN);
         if (account == null) {
@@ -70,7 +70,7 @@ public class TransactionManager extends Manager {
             throw new IllegalArgumentException("Amount must be greater than zero.");
         }
 
-        // Ενημέρωση υπολοίπου
+        // // Ενημέρωση υπολοίπου
         account.addToBalance(amount);
 
         // Καταγραφή συναλλαγής
@@ -83,7 +83,6 @@ public class TransactionManager extends Manager {
                 "deposit",
                 null);
 
-        return true;
     }
 
     /**
