@@ -1,10 +1,15 @@
 package models.accounts;
 
-public abstract class BankAccount {
+import java.time.LocalDateTime;
+
+import models.Storable;
+
+public abstract class BankAccount implements Storable {
     protected String IBAN;
     protected String ownerId;
     protected double balance;
     protected double interestRate;
+    protected LocalDateTime dateCreated;
 
     public BankAccount(String IBAN, String ownerId, double interestRate) {
         this.IBAN = IBAN;

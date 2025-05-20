@@ -61,7 +61,7 @@ public class AccountStatementManager extends Manager {
         AccountStatement newStatement = new AccountStatement(
                 ++statementCounter,
                 accountIBAN,
-                systemRef.getTime(),
+                java.time.LocalDateTime.now(),
                 transactorId,
                 description,
                 type,

@@ -1,19 +1,25 @@
 package managers;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
+import models.Storable;
 import models.accounts.BankAccount;
 import models.accounts.BusinessAccount;
 import models.accounts.PersonalAccount;
+import models.users.Admin;
 import models.users.Company;
 import models.users.Individual;
 import models.users.User;
 import system.BankSystem;
 
-public class AccountManager extends Manager {
+public class AccountManager extends Manager implements StorageManager {
 
     private ArrayList<BankAccount> bankAccountList;
+    private String accountsFilePath = "data/accounts/accounts.csv";
 
     public AccountManager(BankSystem systemref) {
         super(systemref);
@@ -172,7 +178,72 @@ public class AccountManager extends Manager {
 
     }
 
+    @Override
+    public void load(Storable s, String filePath) {
+        Path path = Path.of(filePath);
+        List<String> lines;
+
+        try {
+            lines = Files.readAllLines(path);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
+        for (String line : lines) {
+            if (line.trim().isEmpty())
+                continue;
+
+            String type = line.split(",")[0].split(":")[1];
+
+            BankAccount account = null;
+
+            switch (type) {
+                case "PersonalAccount":
+                    // account = new PersonalAccount("", "", "", "", "", "");
+                    break;
+                case "BusinessAccount":
+                    // account = new BusinessAccount("", "", "", "", "");
+                    break;
+                default:
+                    System.out.println("Unknown account type: " + type);
+                    continue;
+            }
+
+            account.unmarshal(line);
+            bankAccountList.add(account);
+        }
+    }
+
     public ArrayList<BankAccount> getAllAccounts() {
         return new ArrayList<>(bankAccountList);
     }
+
+    @Override
+    public void save(Storable s, String filePath, boolean append) {
+        if (!(s instanceof BankAccount)) {
+            return;
+        }
+
+        Path p = Path.of(filePath);
+
+        List<String> lines = null;
+
+        try {
+            lines = Files.readAllLines(p);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
+        lines.add(s.marshal());
+
+        try {
+            Files.write(p, lines);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+    }
+
 }

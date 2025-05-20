@@ -1,14 +1,15 @@
 package models.users;
 
-public abstract class User {
-    private String id;
-    private String userName;
-    private String password;
-    private String type;
-    private String legalName;
+import models.Storable;
 
-   
-    public User(String legalName ,String id,String userName, String password) {
+public abstract class User implements Storable {
+    protected String id;
+    protected String userName;
+    protected String password;
+    private String type;
+    protected String legalName;
+
+    public User(String legalName, String id, String userName, String password) {
         this.id = id;
         this.userName = userName;
         this.password = password;
@@ -24,11 +25,9 @@ public abstract class User {
         return id;
     }
 
-
     public String getUserName() {
         return userName;
     }
-
 
     public String getPassword() {
         return password;
@@ -53,6 +52,5 @@ public abstract class User {
     public String getLegalName() {
         return legalName;
     }
-
 
 }
