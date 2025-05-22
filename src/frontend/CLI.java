@@ -1,6 +1,6 @@
 package frontend;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.List;
@@ -15,7 +15,6 @@ import models.accounts.BankAccount;
 import models.accounts.PersonalAccount;
 import models.bills.Bill;
 import models.statements.AccountStatement;
-
 import models.accounts.BusinessAccount;
 import managers.UserManager;
 import managers.AccountManager;
@@ -32,13 +31,13 @@ public class CLI {
 
     public static void main(String[] args) {
         // test logic
-        User user1 = system.getUserManager().register("Individual", "test", "abcd", "Test1234", "123456789");
-        system.getAccountManager().createPersonalAccount(user1.getId(), "GR", 1, null);
+        // User user1 = system.getUserManager().register("Individual", "test", "abcd", "Test1234", "123456789");
+        // system.getAccountManager().createPersonalAccount(user1.getId(), "GR", 1, null);
 
-        User user2 = system.getUserManager().register("Company", "test2", "abcd", "Test1234", "987654321");
-        system.getAccountManager().createBusinessAccount(user2.getId(), "AL", 10);
+        // User user2 = system.getUserManager().register("Company", "test2", "abcd", "Test1234", "987654321");
+        // system.getAccountManager().createBusinessAccount(user2.getId(), "AL", 10);
 
-        User user3 = system.getUserManager().register("Admin", "admin", "abcd", "Test1234", null);
+        // User user3 = system.getUserManager().register("Admin", "admin", "abcd", "Test1234", null);
 
         // ontws to CLI ksekinaei edw
         while (true) {
@@ -61,8 +60,9 @@ public class CLI {
 
             // Όταν βγεις από ένα menu, επιστρέφεις εδώ και ξαναδείχνεις login
             System.out.println("\nLogged out. Returning to main menu...\n");
-
         }
+
+        system.save();
     }
 
     private static void promptToAuthenticate() {
@@ -84,7 +84,6 @@ public class CLI {
                     handleLogin();
                     break;
                 case 3:
-                    System.exit(0);
                     break;
                 default:
                     System.out.println("Non valid choice");
@@ -113,7 +112,7 @@ public class CLI {
 
                 if (!choice.equals("yes")) {
                     System.out.println("Exit");
-                    System.exit(0);
+                    return;
                 }
 
             } else {
@@ -491,26 +490,23 @@ public class CLI {
             System.out.print("Description: ");
             String description = input.nextLine();
 
-            // Withdraw withdraw = new Withdraw(
-            //         currentUser.getId(),
-            //         account.getIBAN(),
-            //         description,
-            //         withdrawAmount,
-            //         system);
+            try {
+                system.getTransactionManager().withdraw(
+                        account.getIBAN(),
+                        currentUser.getId(),
+                        description,
+                        withdrawAmount);
 
-            // boolean success = withdraw.execute();
-
-            // if (success) {
-            //     System.out.printf(" Withdrawal successful. New balance: %.2f€\n", account.getBalance());
-            // } else {
-            //     System.out.println(" Withdrawal failed.");
-            // }
+                System.out.printf(" Withdrawal successful. New balance: %.2f€\n", account.getBalance());
+            } catch (Exception e) {
+                System.out.println(" Withdrawal failed. Reason: " + e.getMessage());
+            }
 
         } catch (Exception e) {
             System.out.println(" Error: " + e.getMessage());
-            input.nextLine(); // clear input
+            input.nextLine(); // clear input buffer
         }
-    }
+    }    
 
     private static void handleTransfer(BankAccount senderAccount) {
         try {
@@ -530,7 +526,7 @@ public class CLI {
 
             System.out.print("Amount to transfer: ");
             double amount = input.nextDouble();
-            input.nextLine();
+            input.nextLine(); // Clear buffer
 
             if (amount <= 0) {
                 System.out.println(" Amount must be greater than zero.");
@@ -542,34 +538,28 @@ public class CLI {
                 return;
             }
 
-            System.out.print("Description for sender: ");
-            String senderDesc = input.nextLine();
+            System.out.print("Description: ");
+            String description = input.nextLine();
 
-            System.out.print("Description for receiver: ");
-            String receiverDesc = input.nextLine();
+            try {
+                system.getTransactionManager().transfer(
+                        senderAccount.getIBAN(),
+                        currentUser.getId(),
+                        description,
+                        amount,
+                        receiverIBAN);
 
-            // Transfer transfer = new Transfer(
-            //         currentUser.getId(),
-            //         senderAccount.getIBAN(),
-            //         senderDesc,
-            //         amount,
-            //         receiverIBAN,
-            //         receiverDesc,
-            //         system);
-
-            // boolean success = transfer.execute();
-
-            // if (success) {
-            //     System.out.printf(" Transfer completed. New balance: %.2f€\n", senderAccount.getBalance());
-            // } else {
-            //     System.out.println(" Transfer failed.");
-            // }
+                System.out.printf(" Transfer completed. New balance: %.2f€\n", senderAccount.getBalance());
+            } catch (Exception e) {
+                System.out.println(" Transfer failed. Reason: " + e.getMessage());
+            }
 
         } catch (Exception e) {
             System.out.println(" Error during transfer: " + e.getMessage());
             input.nextLine(); // Clear input buffer
         }
-    }
+    }    
+
 
     private static void handlePayment(BankAccount senderAccount) {
         try {
@@ -581,36 +571,31 @@ public class CLI {
                 return;
             }
 
-            // Έλεγχος αν υπάρχει τέτοιος λογαριασμός για πληρωμή
             if (system.getBillManager().findActiveBillByRF(rf) == null) {
                 System.out.println(" No active bill found with this RF code.");
                 return;
             }
 
-            System.out.print("Description for sender: ");
-            String senderDesc = input.nextLine();
+            System.out.print("Description: ");
+            String description = input.nextLine();
 
-            // Payment payment = new Payment(
-            // currentUser.getId(),
-            // senderAccount.getIBAN(),
-            // senderDesc,
-            // rf,
-            // system);
+            try {
+                system.getTransactionManager().pay(
+                        senderAccount.getIBAN(),
+                        currentUser.getId(),
+                        description,
+                        rf);
 
-            // boolean success = payment.execute();
-            // system.getTransactionManager().pay();
-
-            // if (success) {
-            //     System.out.printf(" Payment completed. New balance: %.2f€\n", senderAccount.getBalance());
-            // } else {
-            //     System.out.println(" Payment failed. (Check RF code or account balance)");
-            // }
+                System.out.printf(" Payment completed. New balance: %.2f€\n", senderAccount.getBalance());
+            } catch (Exception e) {
+                System.out.println(" Payment failed. Reason: " + e.getMessage());
+            }
 
         } catch (Exception e) {
             System.out.println(" Error during payment: " + e.getMessage());
             input.nextLine(); // Clear input buffer
         }
-    }
+    }    
 
     // HANDLE BILLS
 
@@ -682,7 +667,7 @@ public class CLI {
             int days = input.nextInt();
             input.nextLine();
 
-            LocalDateTime expireTime = system.getTime().plusDays(days);
+            LocalDate expireTime = system.getTime().plusDays(days);
             System.out.println(customerId);
             system.getBillManager().issueBill(company.getId(), customerId, amount, expireTime, null);
             System.out.println("Bill issued successfully.");
@@ -692,59 +677,20 @@ public class CLI {
         }
     }
 
-    private static void findUserById() {
-        System.out.print("Enter user ID to search: ");
-        String userId = input.nextLine();
-
-        try {
-            User foundUser = system.getUserManager().findUserById(userId);
-            System.out.println("\nUser found:");
-            System.out.println("Name: " + foundUser.getLegalName());
-            System.out.println("Type: " + system.getUserManager().getUserType(userId));
-        } catch (IllegalArgumentException e) {// if there is no matching id
-            System.out.println("Error: " + e.getMessage());
-        }
-    }
-
-    private static void findAccountByIBAN() {
-        System.out.print("Enter IBAN to search: ");
-        String iban = input.nextLine();
-
-        BankAccount account = system.getAccountManager().findAccountByIBAN(iban);
-        if (account == null) {
-            System.out.println("Account not found");
-            return;
-        }
-
-        System.out.println("\nAccount found:");
-        System.out.println("IBAN: " + account.getIBAN());
-        System.out.println("Owner ID: " + account.getOwnerId());
-        System.out.println("Balance: " + account.getBalance());
-
-        if (account instanceof PersonalAccount) {
-            System.out.println("Type: Personal");
-            System.out.println("Interest Rate: " + ((PersonalAccount) account).getInterestRate() + "%");
-        } else {
-            System.out.println("Type: Business");
-            System.out.println("Maintenance Fee: " + ((BusinessAccount) account).getMaintenanceFee());
-        }
-
-    }
-
     private static void startAdminMenu() {
         while (true) {
-            System.out.println("\n=== Admin Menu ===");
-            System.out.println("1. Show All Customers");
-            System.out.println("2. Show Customer Details");
-            System.out.println("3. Show All Bank Accounts");
-            System.out.println("4. Show Bank Account Info");
-            System.out.println("5. Show Bank Account Statements");
-            System.out.println("6. Simulate Time Passing");
-
-            System.out.println("0. Exit");
-            System.out.print("Choose action: ");
-
+            
             try {
+                System.out.println("\n=== Admin Menu ===");
+                System.out.println("1. Show All Customers");
+                System.out.println("2. Show Customer Details");
+                System.out.println("3. Show All Bank Accounts");
+                System.out.println("4. Show Bank Account Info");
+                System.out.println("5. Show Bank Account Statements");
+                System.out.println("6. Simulate Time Passing");
+    
+                System.out.println("0. Exit");
+                System.out.print("Choose action: ");
                 int choice = input.nextInt();
                 input.nextLine(); // clear buffer
 
@@ -885,11 +831,26 @@ public class CLI {
     }
 
     static void promptToSimulateTimePassing() {
-        throw new RuntimeException("TODO!");
+
         // rwtaei:
         // years
+        System.out.println();
+        int years = input.nextInt();
+
         // months
+        int months = input.nextInt();
+
         // days
+        int days = input.nextInt();
         // kai kalei thn antistoixei synarthsh toy system
+        LocalDate dateBefore = system.getTime();
+        try {
+            system.increaseTime(LocalDate.of(years, months, days));
+            System.out.println("Date before: " + dateBefore);
+            System.out.println("Date now: " + system.getTime());
+        } catch(Exception e){
+            System.out.println("Fail: " + e.getMessage());
+        }
+        
     }
 }

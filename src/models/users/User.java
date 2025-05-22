@@ -17,6 +17,10 @@ public abstract class User implements Storable {
 
     }
 
+    public User(String data){
+        unmarshal(data);
+    }
+
     public String getType() {
         return type;
     }

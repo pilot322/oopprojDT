@@ -10,7 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 import system.BankSystem;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -130,7 +130,7 @@ public class TransactionManagerTest {
 
     // --- Withdraw Tests ---
     @Test
-    public void testWithdraw_Success() {
+    public void testWithdraw_Success() throws Exception{
         double initialBalance = accountManager.findAccountByIBAN(iban1).getBalance(); // Should be 1000
         transactionManager.withdraw(iban1, individualId1, "Cash withdrawal", 100.0);
         assertEquals(initialBalance - 100.0, accountManager.findAccountByIBAN(iban1).getBalance(), 0.001);
@@ -141,13 +141,13 @@ public class TransactionManagerTest {
     }
 
     @Test
-    public void testWithdraw_InsufficientFunds_ThrowsException_NoStatement_BalanceUnchanged() {
+    public void testWithdraw_InsufficientFunds_ThrowsException_NoStatement_BalanceUnchanged() throws Exception{
         double initialBalance = accountManager.findAccountByIBAN(iban1).getBalance(); // 1000
         int initialStatementCount = accountStatementManager.getStatements(iban1).size();
         try {
             transactionManager.withdraw(iban1, individualId1, "Withdraw too much", initialBalance + 2000.0);
             fail("Should throw IllegalStateException for insufficient funds.");
-        } catch (IllegalStateException e) {
+        } catch (Exception e) {
             // Expected
         }
         assertEquals(initialBalance, accountManager.findAccountByIBAN(iban1).getBalance(), 0.001);
@@ -155,7 +155,7 @@ public class TransactionManagerTest {
     }
     
     @Test(expected = IllegalArgumentException.class)
-    public void testWithdraw_UnauthorizedUser_ThrowsException() {
+    public void testWithdraw_UnauthorizedUser_ThrowsException() throws Exception {
         // individualId2 (not owner of iban1) tries to withdraw from iban1
         transactionManager.withdraw(iban1, individualId2, "Unauthorized withdraw", 50.0);
     }
@@ -165,7 +165,7 @@ public class TransactionManagerTest {
 
     // --- Transfer Tests ---
     @Test
-    public void testTransfer_Success() {
+    public void testTransfer_Success() throws Exception{
         double senderInitial = accountManager.findAccountByIBAN(iban1).getBalance(); // 1000
         double receiverInitial = accountManager.findAccountByIBAN(iban2).getBalance();
 
@@ -189,7 +189,7 @@ public class TransactionManagerTest {
     }
 
     @Test
-    public void testTransfer_SenderInsufficientFunds_ThrowsException_NoStatements_BalancesUnchanged() {
+    public void testTransfer_SenderInsufficientFunds_ThrowsException_NoStatements_BalancesUnchanged()throws Exception {
         double senderInitial = accountManager.findAccountByIBAN(iban1).getBalance(); // 1000
         double receiverInitial = accountManager.findAccountByIBAN(iban2).getBalance();
         int senderInitialStmtCount = accountStatementManager.getStatements(iban1).size();
@@ -208,18 +208,18 @@ public class TransactionManagerTest {
     }
     
     @Test(expected = IllegalArgumentException.class)
-    public void testTransfer_SameSenderAndReceiverIBAN_ThrowsException() {
+    public void testTransfer_SameSenderAndReceiverIBAN_ThrowsException() throws Exception{
         transactionManager.transfer(iban1, individualId1, "Self transfer", 50.0, iban1);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testTransfer_UnauthorizedUser_ThrowsException() {
+    public void testTransfer_UnauthorizedUser_ThrowsException() throws Exception{
         // individualId2 (not owner of iban1) tries to transfer from iban1
         transactionManager.transfer(iban1, individualId2, "Unauthorized transfer", 50.0, iban2);
     }
     
     @Test
-    public void testTransfer_Success_ByAdmin() {
+    public void testTransfer_Success_ByAdmin() throws Exception{
         double senderInitial = accountManager.findAccountByIBAN(iban1).getBalance(); // 1000
         double receiverInitial = accountManager.findAccountByIBAN(iban2).getBalance();
 
@@ -242,13 +242,13 @@ public class TransactionManagerTest {
         // BillManager's actual (potentially TODO) implementation or make assumptions.
 
         // Let's assume we can add a bill to BillManager for testing.
-        // Bill constructor: String id, String businessId, String customerId, String RF, double amount, LocalDateTime timePublished, LocalDateTime expireTime
+        // Bill constructor: String id, String businessId, String customerId, String RF, double amount, LocalDate timePublished, LocalDate expireTime
         String testRF = "RF12345";
         double billAmount = 75.0;
         String billId = "BILL001"; // Bill ID as String
         // The bill's businessId is companyId, which owns iban3_business
         // Assuming Bill constructor now takes String IDs
-        Bill testBill = new Bill(billId, companyId, individualId1, testRF, billAmount, LocalDateTime.now(), LocalDateTime.now().plusDays(30));
+        Bill testBill = new Bill(billId, companyId, individualId1, testRF, billAmount, LocalDate.now(), LocalDate.now().plusDays(30));
         
         // This is a placeholder for how you'd make the bill known to BillManager.
         // if (billManager != null) {

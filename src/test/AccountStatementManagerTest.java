@@ -6,7 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import system.BankSystem;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -99,23 +99,28 @@ public class AccountStatementManagerTest {
 
     @Test
     public void testAddStatement_Multiple_CheckOrderDescendingTimestamp() throws InterruptedException {
-        // Timestamps are crucial here. LocalDateTime.now() might be too fast.
-        // For robust testing of order, you might need to inject a Clock or pass LocalDateTime to addStatement.
-        // Assuming addStatement uses LocalDateTime.now() internally.
+        // Timestamps are crucial here. LocalDate.now() might be too fast.
+        // For robust testing of order, you might need to inject a Clock or pass LocalDate to addStatement.
+        // Assuming addStatement uses LocalDate.now() internally.
         // We'll add them with slight delays if possible, or rely on the internal list management for order.
 
-        LocalDateTime time1 = LocalDateTime.now();
+        LocalDate time1 = LocalDate.now();
         accountStatementManager.addStatement(testIBAN1, testUserId1, "Op 1", 50.0, 50.0, "deposit", null);
         Thread.sleep(10); // Introduce a small delay for distinct timestamps
 
-        LocalDateTime time2 = LocalDateTime.now();
+        LocalDate time2 = LocalDate.now();
         accountStatementManager.addStatement(testIBAN1, testUserId1, "Op 2", 20.0, 30.0, "withdraw", null);
         Thread.sleep(10);
 
-        LocalDateTime time3 = LocalDateTime.now();
+        LocalDate time3 = LocalDate.now();
         accountStatementManager.addStatement(testIBAN1, testUserId1, "Op 3", 100.0, 130.0, "deposit", null);
 
         List<AccountStatement> statements = accountStatementManager.getStatements(testIBAN1);
+        
+        for(AccountStatement st : statements){
+            System.out.println(st.marshal());
+        }
+        
         assertEquals(3, statements.size());
 
         // Verify descending order by timestamp (latest first)

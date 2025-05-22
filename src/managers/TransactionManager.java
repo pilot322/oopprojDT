@@ -1,6 +1,7 @@
 package managers;
 
 import models.accounts.BankAccount;
+import models.accounts.BusinessAccount;
 import models.bills.Bill;
 import models.users.Admin;
 
@@ -17,8 +18,7 @@ public class TransactionManager extends Manager {
      * 
      * @return true αν η ανάληψη ολοκληρώθηκε επιτυχώς
      */
-    public boolean withdraw(String accountIBAN, String transactorId,
-            String description, double amount) {
+    public void withdraw(String accountIBAN, String transactorId, String description, double amount) throws Exception {
 
         BankAccount account = systemRef.getAccountManager().findAccountByIBAN(accountIBAN);
 
@@ -45,7 +45,7 @@ public class TransactionManager extends Manager {
                 accountIBAN, transactorId, description, amount,
                 account.getBalance(), "withdraw", null);
 
-        return true;
+      
     }
 
     /**
@@ -90,8 +90,8 @@ public class TransactionManager extends Manager {
      * 
      * @return true αν η μεταφορά ολοκληρώθηκε επιτυχώς
      */
-    public boolean transfer(String senderIBAN, String transactorId, String description, double amount,
-            String receiverIBAN) {
+    public void transfer(String senderIBAN, String transactorId, String description, double amount,String receiverIBAN) 
+            throws Exception {
         // Έλεγχος εγκυρότητας λογαριασμών
         BankAccount senderAccount = systemRef.getAccountManager().findAccountByIBAN(senderIBAN);
         BankAccount receiverAccount = systemRef.getAccountManager().findAccountByIBAN(receiverIBAN);
@@ -133,7 +133,6 @@ public class TransactionManager extends Manager {
                 receiverIBAN, transactorId, description + " from " + senderIBAN, amount,
                 receiverAccount.getBalance(), "transfer_in", senderIBAN);
 
-        return true;
     }
 
     /**
@@ -141,7 +140,7 @@ public class TransactionManager extends Manager {
      * 
      * @return true αν η πληρωμή ολοκληρώθηκε επιτυχώς
      */
-    public boolean pay(String accountIBAN, String transactorId, String description, String RF) {
+    public void pay(String accountIBAN, String transactorId, String description, String RF) throws Exception{
         // Έλεγχος εγκυρότητας λογαριασμού
         BankAccount account = systemRef.getAccountManager().findAccountByIBAN(accountIBAN);
         if (account == null) {
@@ -168,23 +167,23 @@ public class TransactionManager extends Manager {
 
         // Εκτέλεση πληρωμής
         account.removeFromBalance(bill.getAmount());
-        systemRef.getAccountManager().findAccountByIBAN(bill.getBusinessId()).addToBalance(bill.getAmount());
+        BusinessAccount businessAccount = systemRef.getAccountManager().findAccountByBusinessId(bill.getBusinessId());
+        businessAccount.addToBalance(bill.getAmount());
 
         // Ενημέρωση λογαριασμού πληρωμής
-        systemRef.getBillManager().markBillAsPaid(bill.getId());
+        systemRef.getBillManager().markBillAsPaid(RF);
 
         // Καταγραφή συναλλαγών
         systemRef.getAccountStatementManager().addStatement(
                 accountIBAN, transactorId, description + " (RF: " + RF + ")",
-                -bill.getAmount(), account.getBalance(), "payment_out",
-                bill.getBusinessId());
+                bill.getAmount(), account.getBalance(), "payment_out", businessAccount.getIBAN()
+                );
         systemRef.getAccountStatementManager().addStatement(
-                bill.getBusinessId(), transactorId, "Payment from " + accountIBAN + "(RF: " + RF + ")",
+                businessAccount.getIBAN(), transactorId, "Payment from " + accountIBAN + "(RF: " + RF + ")",
                 bill.getAmount(),
-                systemRef.getAccountManager().findAccountByIBAN(bill.getBusinessId()).getBalance(),
+                businessAccount.getBalance(),
                 "payment_in", accountIBAN);
 
-        return true;
     }
 
 }

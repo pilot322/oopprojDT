@@ -7,7 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import system.BankSystem;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random; // For generating distinct RFs if needed for testing
@@ -61,7 +61,7 @@ public class BillManagerTest {
 
     @Test
     public void testIssueBill_Success_NewRF() throws Exception {
-        LocalDateTime expireTime = LocalDateTime.now().plusDays(30);
+        LocalDate expireTime = bankSystem.getTime().plusDays(30);
         // Assuming issueBill now returns the created Bill or its String ID
         // And Bill.getBusinessId() and Bill.getCustomerId() return String
         billManager.issueBill(businessId1, customerIdIndiv1, 100.0, expireTime, null); // null for oldRF -> new RF
@@ -77,10 +77,10 @@ public class BillManagerTest {
         assertFalse(issuedBill.getRF().isEmpty());
         assertTrue(issuedBill.isActive());
         assertFalse(issuedBill.isPaid());
-        // Expire time check might be tricky if exact LocalDateTime.now() in SUT is
+        // Expire time check might be tricky if exact bankSystem.getTime() in SUT is
         // used.
         // Checking if it's close to what was passed or simply that it's after now.
-        assertTrue(issuedBill.getExpireTime().isAfter(LocalDateTime.now()));
+        assertTrue(issuedBill.getExpireTime().isAfter(bankSystem.getTime()));
         assertNotNull(issuedBill.getTimePublished());
         // If Bill has an ID, and it's now String:
         // assertNotNull(issuedBill.getId()); // Assuming Bill has getId() returning
@@ -90,7 +90,7 @@ public class BillManagerTest {
     @Test
     public void testIssueBill_Success_WithOldRF_PreviousActiveBillExists() throws Exception {
         String commonRF = generateTestRF("COMMONRF"); // Ensures it's a predictable RF for the test
-        LocalDateTime firstExpireTime = LocalDateTime.now().plusDays(10);
+        LocalDate firstExpireTime = bankSystem.getTime().plusDays(10);
         // Issue first bill
         billManager.issueBill(businessId1, customerIdIndiv1, 50.0, firstExpireTime, commonRF);
 
@@ -102,7 +102,7 @@ public class BillManagerTest {
         // returning String
 
         // Issue second bill with the same RF (oldRF = commonRF)
-        LocalDateTime secondExpireTime = LocalDateTime.now().plusDays(20);
+        LocalDate secondExpireTime = bankSystem.getTime().plusDays(20);
         billManager.issueBill(businessId1, customerIdIndiv1, 70.0, secondExpireTime, commonRF);
 
         // Verify first bill is now inactive
@@ -149,7 +149,7 @@ public class BillManagerTest {
     @Test
     public void testIssueBill_Success_WithOldRF_NoPreviousActiveBill_UsesOldRFAsNew() throws Exception {
         String specificRF = generateTestRF("SPECIFIC_RF_NO_ACTIVE");
-        LocalDateTime expireTime = LocalDateTime.now().plusDays(15);
+        LocalDate expireTime = bankSystem.getTime().plusDays(15);
 
         // Issue bill with an 'oldRF' that doesn't have a currently active counterpart
         billManager.issueBill(businessId1, customerIdIndiv1, 120.0, expireTime, specificRF);
@@ -165,54 +165,54 @@ public class BillManagerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testIssueBill_InvalidBusinessId_ThrowsException() throws Exception {
-        billManager.issueBill(nonExistentUserId, customerIdIndiv1, 100.0, LocalDateTime.now().plusDays(30), null);
+        billManager.issueBill(nonExistentUserId, customerIdIndiv1, 100.0, bankSystem.getTime().plusDays(30), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testIssueBill_BusinessIdNotCompany_ThrowsException() throws Exception {
         // customerIdIndiv1 is an Individual, not a Company
-        billManager.issueBill(customerIdIndiv1, customerIdComp1, 100.0, LocalDateTime.now().plusDays(30), null);
+        billManager.issueBill(customerIdIndiv1, customerIdComp1, 100.0, bankSystem.getTime().plusDays(30), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testIssueBill_InvalidCustomerId_ThrowsException() throws Exception {
-        billManager.issueBill(businessId1, nonExistentUserId, 100.0, LocalDateTime.now().plusDays(30), null);
+        billManager.issueBill(businessId1, nonExistentUserId, 100.0, bankSystem.getTime().plusDays(30), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testIssueBill_NegativeAmount_ThrowsException() throws Exception {
-        billManager.issueBill(businessId1, customerIdIndiv1, -100.0, LocalDateTime.now().plusDays(30), null);
+        billManager.issueBill(businessId1, customerIdIndiv1, -100.0, bankSystem.getTime().plusDays(30), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testIssueBill_ZeroAmount_ThrowsException() throws Exception {
-        billManager.issueBill(businessId1, customerIdIndiv1, 0.0, LocalDateTime.now().plusDays(30), null);
+        billManager.issueBill(businessId1, customerIdIndiv1, 0.0, bankSystem.getTime().plusDays(30), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testIssueBill_ExpireTimeInPast_ThrowsException() throws Exception {
-        billManager.issueBill(businessId1, customerIdIndiv1, 100.0, LocalDateTime.now().minusDays(1), null);
+        billManager.issueBill(businessId1, customerIdIndiv1, 100.0, bankSystem.getTime().minusDays(1), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testIssueBill_ExpireTimeEqualToPublishTime_ThrowsException() throws Exception {
-        // Publish time is effectively LocalDateTime.now() inside issueBill.
+        // Publish time is effectively bankSystem.getTime() inside issueBill.
         // This test is tricky without controlling 'now'. If expireTime is exactly now,
         // it might pass/fail based on nanoseconds.
         // A more robust way is to ensure expireTime is strictly after publishTime.
         // For this, we'd ideally pass publishTime or ensure SUT uses a fixed 'now' for
         // testing.
-        // Assuming a slight delay, LocalDateTime.now() might be considered "in past or
+        // Assuming a slight delay, bankSystem.getTime() might be considered "in past or
         // equal".
         // Let's test with now(), assuming it should be strictly after.
-        billManager.issueBill(businessId1, customerIdIndiv1, 100.0, LocalDateTime.now(), null);
+        billManager.issueBill(businessId1, customerIdIndiv1, 100.0, bankSystem.getTime(), null);
     }
 
     // --- markBillAsPaid Tests ---
     @Test
     public void testMarkBillAsPaid_Success() throws Exception {
         String rf = generateTestRF("PAY_ME");
-        billManager.issueBill(businessId1, customerIdIndiv1, 50.0, LocalDateTime.now().plusDays(5), rf);
+        billManager.issueBill(businessId1, customerIdIndiv1, 50.0, bankSystem.getTime().plusDays(5), rf);
         Bill billBeforePay = billManager.getActiveBillByRf(rf);
         assertNotNull(billBeforePay);
         assertTrue(billBeforePay.isActive());
@@ -241,7 +241,7 @@ public class BillManagerTest {
     @Test(expected = IllegalStateException.class)
     public void testMarkBillAsPaid_BillAlreadyPaid_ThrowsException() throws Exception {
         String rf = generateTestRF("ALREADY_PAID");
-        billManager.issueBill(businessId1, customerIdIndiv1, 50.0, LocalDateTime.now().plusDays(5), rf);
+        billManager.issueBill(businessId1, customerIdIndiv1, 50.0, bankSystem.getTime().plusDays(5), rf);
         billManager.markBillAsPaid(rf); // First payment
         billManager.markBillAsPaid(rf); // Attempt second payment
     }
@@ -249,7 +249,7 @@ public class BillManagerTest {
     @Test(expected = IllegalStateException.class)
     public void testMarkBillAsPaid_BillNotActive_ThrowsException() throws Exception {
         String rf = generateTestRF("NOT_ACTIVE_PAY");
-        billManager.issueBill(businessId1, customerIdIndiv1, 50.0, LocalDateTime.now().plusDays(5), rf);
+        billManager.issueBill(businessId1, customerIdIndiv1, 50.0, bankSystem.getTime().plusDays(5), rf);
         Bill bill = billManager.getActiveBillByRf(rf);
         assertNotNull(bill);
         // To ensure the bill is found by RF but is inactive for this test,
@@ -273,8 +273,8 @@ public class BillManagerTest {
     @Test
     public void testGetBillsByRF_Found() throws Exception {
         String rf = generateTestRF("RF_GET_MULTI");
-        billManager.issueBill(businessId1, customerIdIndiv1, 10.0, LocalDateTime.now().plusDays(1), rf);
-        billManager.issueBill(businessId2, customerIdComp1, 20.0, LocalDateTime.now().plusDays(2), rf); // Same RF,
+        billManager.issueBill(businessId1, customerIdIndiv1, 10.0, bankSystem.getTime().plusDays(1), rf);
+        billManager.issueBill(businessId2, customerIdComp1, 20.0, bankSystem.getTime().plusDays(2), rf); // Same RF,
                                                                                                         // different
                                                                                                         // business
 
@@ -291,7 +291,7 @@ public class BillManagerTest {
     // --- getActiveBillsForCustomer Tests ---
     @Test
     public void testGetActiveBillsForCustomer_Success() throws Exception {
-        LocalDateTime future = LocalDateTime.now().plusDays(5);
+        LocalDate future = bankSystem.getTime().plusDays(5);
         String rfToBePaid = generateTestRF("PAID_CUST_ACTIVE");
         billManager.issueBill(businessId1, customerIdIndiv1, 10.0, future, null); // Active
         billManager.issueBill(businessId1, customerIdIndiv1, 20.0, future, null); // Active
@@ -302,7 +302,7 @@ public class BillManagerTest {
         // Let's assume issueBill with past date creates an effectively inactive/expired
         // bill.
         // billManager.issueBill(businessId2, customerIdIndiv1, 30.0,
-        // LocalDateTime.now().plusDays(2),
+        // bankSystem.getTime().plusDays(2),
         // generateTestRF("EXPIRED_CUST")); // Expired
         billManager.issueBill(businessId1, customerIdIndiv1, 40.0, future, rfToBePaid);
         billManager.markBillAsPaid(rfToBePaid); // Paid
@@ -312,7 +312,7 @@ public class BillManagerTest {
         for (Bill b : activeBills) {
             assertTrue(b.isActive());
             assertFalse(b.isPaid());
-            assertTrue(b.getExpireTime().isAfter(LocalDateTime.now()));
+            assertTrue(b.getExpireTime().isAfter(bankSystem.getTime()));
             assertEquals(customerIdIndiv1, b.getCustomerId());
         }
     }
@@ -327,9 +327,9 @@ public class BillManagerTest {
         // customerIdIndiv1 exists but has no active bills initially or after specific
         // setup
         // billManager.issueBill(businessId1, customerIdIndiv1, 10.0,
-        // LocalDateTime.now().minusDays(1), null); // Expired
+        // bankSystem.getTime().minusDays(1), null); // Expired
         String rfToPay = generateTestRF("PAY_FOR_NO_ACTIVE");
-        billManager.issueBill(businessId1, customerIdIndiv1, 20.0, LocalDateTime.now().plusDays(1), rfToPay);
+        billManager.issueBill(businessId1, customerIdIndiv1, 20.0, bankSystem.getTime().plusDays(1), rfToPay);
         billManager.markBillAsPaid(rfToPay); // Paid
 
         List<Bill> activeBills = billManager.getActiveBillsForCustomer(customerIdIndiv1);
@@ -339,14 +339,14 @@ public class BillManagerTest {
     // --- getActiveBillsForBusiness Tests ---
     @Test
     public void testGetActiveBillsForBusiness_Success() throws Exception {
-        LocalDateTime future = LocalDateTime.now().plusDays(5);
+        LocalDate future = bankSystem.getTime().plusDays(5);
         String rfToBePaidBiz = generateTestRF("PAID_BIZ_ACTIVE");
 
         billManager.issueBill(businessId1, customerIdIndiv1, 10.0, future, null); // Active for biz1
         billManager.issueBill(businessId1, customerIdComp1, 20.0, future, null); // Active for biz1
         // Expired bill for businessId1
         // billManager.issueBill(businessId1, customerIdIndiv1, 30.0,
-        // LocalDateTime.now().minusDays(1),
+        // bankSystem.getTime().minusDays(1),
         // generateTestRF("EXPIRED_BIZ"));
         // Paid bill for businessId1
         billManager.issueBill(businessId1, customerIdIndiv1, 50.0, future, rfToBePaidBiz);
@@ -359,7 +359,7 @@ public class BillManagerTest {
         for (Bill b : activeBills) {
             assertTrue(b.isActive());
             assertFalse(b.isPaid());
-            assertTrue(b.getExpireTime().isAfter(LocalDateTime.now()));
+            assertTrue(b.getExpireTime().isAfter(bankSystem.getTime()));
             assertEquals(businessId1, b.getBusinessId());
         }
     }
@@ -382,10 +382,10 @@ public class BillManagerTest {
         String rf1 = generateTestRF("PAIR_1");
         String rf2 = generateTestRF("PAIR_2");
         String rf3 = generateTestRF("PAIR_3");
-        billManager.issueBill(businessId1, customerIdIndiv1, 10.0, LocalDateTime.now().plusDays(1), rf1);
-        billManager.issueBill(businessId1, customerIdIndiv1, 20.0, LocalDateTime.now().plusDays(2), rf2);
+        billManager.issueBill(businessId1, customerIdIndiv1, 10.0, bankSystem.getTime().plusDays(1), rf1);
+        billManager.issueBill(businessId1, customerIdIndiv1, 20.0, bankSystem.getTime().plusDays(2), rf2);
         billManager.markBillAsPaid(rf1); // Mark one as paid (it should still be returned by this method)
-        billManager.issueBill(businessId2, customerIdIndiv1, 30.0, LocalDateTime.now().plusDays(3), rf3); // Different
+        billManager.issueBill(businessId2, customerIdIndiv1, 30.0, bankSystem.getTime().plusDays(3), rf3); // Different
                                                                                                           // business
 
         // Assuming getBillsForBusinessCustomerPair return type is List<Bill>
@@ -431,8 +431,8 @@ public class BillManagerTest {
     @Test
     public void testDeactivateBillsWithRF_DeactivatesAllMatchingRF() throws Exception {
         String rf = generateTestRF("DEACTIVATE_ME");
-        billManager.issueBill(businessId1, customerIdIndiv1, 10.0, LocalDateTime.now().plusDays(1), rf);
-        billManager.issueBill(businessId2, customerIdComp1, 20.0, LocalDateTime.now().plusDays(2), rf); // Same RF,
+        billManager.issueBill(businessId1, customerIdIndiv1, 10.0, bankSystem.getTime().plusDays(1), rf);
+        billManager.issueBill(businessId2, customerIdComp1, 20.0, bankSystem.getTime().plusDays(2), rf); // Same RF,
                                                                                                         // different
                                                                                                         // bill
 
@@ -450,7 +450,7 @@ public class BillManagerTest {
     @Test
     public void testDeactivateBillsWithRF_NoMatchingRF_NoChange() throws Exception {
         String rfActive = generateTestRF("STILL_ACTIVE");
-        billManager.issueBill(businessId1, customerIdIndiv1, 10.0, LocalDateTime.now().plusDays(1), rfActive);
+        billManager.issueBill(businessId1, customerIdIndiv1, 10.0, bankSystem.getTime().plusDays(1), rfActive);
 
         // Get initial state
         Bill billBefore = billManager.getActiveBillByRf(rfActive);
@@ -478,7 +478,7 @@ public class BillManagerTest {
     @Test
     public void testGetActiveBillByRf_Found() throws Exception {
         String rf = generateTestRF("GET_ACTIVE");
-        billManager.issueBill(businessId1, customerIdIndiv1, 10.0, LocalDateTime.now().plusDays(1), rf);
+        billManager.issueBill(businessId1, customerIdIndiv1, 10.0, bankSystem.getTime().plusDays(1), rf);
         Bill bill = billManager.getActiveBillByRf(rf);
         assertNotNull(bill);
         assertEquals(rf, bill.getRF());
@@ -495,7 +495,7 @@ public class BillManagerTest {
     @Test
     public void testGetActiveBillByRf_BillExistsButNotActive_ReturnsNull() throws Exception {
         String rf = generateTestRF("INACTIVE_BILL_RF");
-        billManager.issueBill(businessId1, customerIdIndiv1, 10.0, LocalDateTime.now().plusDays(1), rf);
+        billManager.issueBill(businessId1, customerIdIndiv1, 10.0, bankSystem.getTime().plusDays(1), rf);
         billManager.deactivateBillsWithRF(rf); // Deactivate it
         Bill bill = billManager.getActiveBillByRf(rf);
         assertNull("getActiveBillByRf should return null for an inactive bill", bill);
@@ -504,7 +504,7 @@ public class BillManagerTest {
     @Test
     public void testGetActiveBillByRf_BillExistsButPaid_ReturnsNull() throws Exception {
         String rf = generateTestRF("PAID_BILL_RF");
-        billManager.issueBill(businessId1, customerIdIndiv1, 10.0, LocalDateTime.now().plusDays(1), rf);
+        billManager.issueBill(businessId1, customerIdIndiv1, 10.0, bankSystem.getTime().plusDays(1), rf);
         billManager.markBillAsPaid(rf); // Pay it
         Bill bill = billManager.getActiveBillByRf(rf);
         assertNull("getActiveBillByRf should return null for a paid bill", bill);
@@ -555,7 +555,7 @@ public class BillManagerTest {
         // A better approach: if BillManager has a method to check if a specific Bill
         // object is currently considered active:
         // Bill testBill = new Bill("billIdStr", businessId1, customerIdIndiv1, rf,
-        // 10.0, LocalDateTime.now().minusDays(1), LocalDateTime.now().minusDays(1));
+        // 10.0, bankSystem.getTime().minusDays(1), bankSystem.getTime().minusDays(1));
         // assertFalse(billManager.isBillConsideredActive(testBill)); // Hypothetical
         // method
 
@@ -573,7 +573,7 @@ public class BillManagerTest {
         // If `issueBill` could create an already expired bill (and didn't throw an
         // exception), this would be:
         // billManager.issueBill(businessId1, customerIdIndiv1, 10.0,
-        // LocalDateTime.now().minusDays(1), rf); // Assume this works for test
+        // bankSystem.getTime().minusDays(1), rf); // Assume this works for test
         // Bill bill = billManager.getActiveBillByRf(rf);
         // assertNull("Expired bill should not be returned by getActiveBillByRf", bill);
 

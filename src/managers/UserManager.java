@@ -1,24 +1,30 @@
 package managers;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import models.Storable;
 import models.users.Admin;
 import models.users.Company;
 import models.users.Individual;
 import models.users.User;
 import system.BankSystem;
 
-public class UserManager extends Manager {
+public class UserManager extends Manager implements StorageManager {
     private final Map<String, User> usersMap;
-
+    private String usersFilePath = "data/users/users.csv";
     private int nextId = 0; // ayto aplws krataei to posa users esxoyn dhmioyrghthei
 
     public UserManager(BankSystem systemref) {
         super(systemref);
         usersMap = new HashMap<>();
+
+        load(usersFilePath);
     }
 
     // User login
@@ -58,6 +64,7 @@ public class UserManager extends Manager {
         return userId;
     }
 
+    // C
     public User register(String type, String username, String password, String legalName, String vat)
             throws IllegalArgumentException {
 
@@ -95,11 +102,8 @@ public class UserManager extends Manager {
 
         // 4. Store the user
         usersMap.put(newUser.getId(), newUser);
-        System.out.printf("Register successful, %s %s\n", newUser.getUserName(), newUser.getId());
-
-        for (String id : usersMap.keySet()) {
-            System.out.println("key: " + id);
-        }
+        System.out.printf("Register successful, %s\n", newUser.getUserName());
+        // save(newUser, usersFilePath, true);
 
         return newUser;
     }
@@ -136,5 +140,106 @@ public class UserManager extends Manager {
 
     public List<User> getAllUsers() {
         return new ArrayList<>(usersMap.values());
+    }
+
+    @Override
+    public void load(String filePath) {
+        Path path = Path.of(filePath);
+        List<String> lines = List.of();
+
+        try {
+            lines = Files.readAllLines(path);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
+        for (String line : lines) {
+            if (line.trim().isEmpty())
+                continue;
+
+            String type = line.split(",")[0].split(":")[1];
+
+            User user = null;
+
+            switch (type) {
+                case "Admin":
+                    user = new Admin(line);
+                    break;
+                case "Individual":
+                    user = new Individual(line);
+                    break;
+                case "Company":
+                    user = new Company(line);
+                    break;
+                default:
+                    System.out.println("Unknown user type: " + type);
+                    continue;
+            }
+
+            usersMap.put(user.getId(), user);
+
+            // update nextId to avoid ID reuse
+            try {
+                int numericId = Integer.parseInt(user.getId().replace("1000000", ""));
+                if (numericId >= nextId) {
+                    nextId = numericId + 1;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid ID format for user: " + user.getId());
+            }
+            System.out.println(user.marshal());
+        }
+    }
+
+    @Override
+    public void save(Storable s, String filePath, boolean append) {
+        // kseroyme oti to append tha einai panta true
+        // kseroyme oti to s einai User
+        if (!(s instanceof User)) {
+            return;
+        }
+
+        Path p = Path.of(filePath);
+
+        // List<String> lines = null;
+        // // 1. prwta prepei na diavaseis ola ta periexomena toy arxeioy (mia lista me
+        // // oles tis grammes)
+        // try {
+        //     lines = Files.readAllLines(p);
+        // } catch (Exception e) {
+        //     e.printStackTrace();
+        //     return;
+        // }
+
+        // 2. meta prepei na prostheseis mia grammh sto telos me to kainoyrio user
+        // lines.add(s.marshal());
+        String newline = s.marshal();
+        // 3. kai na grapseis oles tis grammes sto arxeio (svhnwntas tis palies)
+        try {
+            Files.write(p, List.of(newline), StandardOpenOption.APPEND);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
+    }
+
+    public void saveData(){
+        // tha prepei na adeiazoyme to arxeio prin kanoyme append
+        try{
+
+            Path p = Path.of(usersFilePath);
+            Files.write(p, List.of());
+
+            // gia kathe antikeimeno sto usersmap tha kaloyme thn save
+            for(User u : usersMap.values()){
+                save(u,usersFilePath, true);
+            }
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 }

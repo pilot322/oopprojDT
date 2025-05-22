@@ -6,6 +6,10 @@ public class Individual extends Costumer {
         super(legalName, id, userName, password, vatNumber);
     }
 
+    public Individual(String userMarshallData) {
+        super(userMarshallData);
+    }
+
     @Override
     public String marshal() {
         return String.format("type:Individual,id:%s,legalName:%s,userName:%s,password:%s,vatNumber:%s",

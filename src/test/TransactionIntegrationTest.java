@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import system.BankSystem;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -180,13 +180,13 @@ public class TransactionIntegrationTest {
 
 
         // 2. Setup a Bill in BillManager (conceptually)
-        // Bill: String id, String businessId, String customerId, String RF, double amount, LocalDateTime timePublished, LocalDateTime expireTime
+        // Bill: String id, String businessId, String customerId, String RF, double amount, LocalDate timePublished, LocalDate expireTime
         String billRF = "BILLRF001";
         double billAmount = 75.0;
         String billId = "B101"; // example bill ID as String
 
         // This is where you would normally interact with BillManager to add a bill.
-        // e.g., billManager.addBill(new Bill(billId, userIdCompA, userIdIndivA, billRF, billAmount, LocalDateTime.now(), LocalDateTime.now().plusDays(10)));
+        // e.g., billManager.addBill(new Bill(billId, userIdCompA, userIdIndivA, billRF, billAmount, LocalDate.now(), LocalDate.now().plusDays(10)));
         // For this test to work without a full BillManager, your TransactionManager.pay()
         // needs a way to get these details. If it calls methods on BillManager, those methods
         // need to be implemented in BillManager.
@@ -210,7 +210,7 @@ public class TransactionIntegrationTest {
         // If your BillManager is simple (e.g., in-memory map):
         if (billManager != null) { // Check if BillManager is available
             // Assuming Bill constructor now takes String IDs for billId, businessId, customerId
-            Bill testBill = new Bill(billId, userIdCompA, userIdIndivA, billRF, billAmount, LocalDateTime.now(), LocalDateTime.now().plusDays(30));
+            Bill testBill = new Bill(billId, userIdCompA, userIdIndivA, billRF, billAmount, LocalDate.now(), LocalDate.now().plusDays(30));
             // This is a placeholder for actual BillManager interaction.
             // billManager.addBill(testBill); // You would need to implement this or a similar method
             // For the test to proceed, we'll assume the bill *would be* found if BillManager was fully mocked/implemented.

@@ -1,6 +1,6 @@
 package models.users;
 
-public class Costumer extends User {
+public abstract class Costumer extends User {
 
     String VAT;
 
@@ -9,20 +9,11 @@ public class Costumer extends User {
         this.VAT = VAT;
     }
 
+    public Costumer(String data){
+        super(data);
+    }
+
     public String getVAT() {
         return VAT;
     }
-
-    @Override
-    public String marshal() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'marshal'");
-    }
-
-    @Override
-    public void unmarshal(String data) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'unmarshal'");
-    }
-
 }

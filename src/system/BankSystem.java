@@ -1,6 +1,6 @@
 package system;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 import managers.AccountManager;
@@ -19,16 +19,25 @@ public class BankSystem {
     private TransactionManager transactionManager;
     private UserManager userManager;
 
+    private static BankSystem systemRef;
+
     // xronos prosomoiwshs
-    LocalDateTime time = LocalDateTime.of(2020, 1, 1, 0, 0);
+    LocalDate time = LocalDate.of(2020, 1, 1);
 
     public BankSystem() {
+        userManager = new UserManager(this);
         accountManager = new AccountManager(this);
         accountStatementManager = new AccountStatementManager(this);
         billManager = new BillManager(this);
         transactionManager = new TransactionManager(this);
-        userManager = new UserManager(this);
+ 
         System.out.printf("BankSystem: %s\n", time);
+
+        systemRef = this;
+    }
+
+    public static BankSystem getSystemRef() {
+        return systemRef;
     }
 
     public AccountManager getAccountManager() {
@@ -55,11 +64,11 @@ public class BankSystem {
         return userManager.register(type, username, password, legalName, vat);
     }
 
-    public LocalDateTime getTime() {
+    public LocalDate getTime() {
         return time;
     }
 
-    public void increaseTime(LocalDateTime targetDate) throws Exception {
+    public void increaseTime(LocalDate targetDate) throws Exception {
         // tha prepei:
         // gia kathe mera mexri na teleiwsei o xronos,
         // na ayksaneis kata 1 thn mera toy systhmatos
@@ -73,7 +82,7 @@ public class BankSystem {
 
         while (time.isBefore(targetDate)) {
             // 1.
-            time.plusDays(1);
+            time = time.plusDays(1);
             tryToGiveInterest();
             // 2.
             tryToTaxBusinesses();
@@ -111,5 +120,12 @@ public class BankSystem {
 
             b.removeFromBalance(((BusinessAccount) b).getMaintenanceFee());
         }
+    }
+
+    public void save(){
+        userManager.saveData();
+        accountManager.saveData();
+        accountStatementManager.saveData();
+        billManager.saveData();
     }
 }

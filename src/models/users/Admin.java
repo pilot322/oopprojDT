@@ -6,6 +6,10 @@ public class Admin extends User {
         super(legalName, id, userName, password);
     }
 
+    public Admin(String userMarshallData) {
+        super(userMarshallData);
+    }
+
     @Override
     public String marshal() {
         String temp = String.format("type:Admin,id:%s,legalName:%s,userName:%s,password:%s", id, legalName, userName,

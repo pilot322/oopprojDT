@@ -1,17 +1,24 @@
 package managers;
 
-import java.time.LocalDateTime;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
+import models.Storable;
+import models.accounts.BankAccount;
 import models.bills.Bill;
 import models.users.Company;
 import models.users.User;
 import system.BankSystem;
 
-public class BillManager extends Manager {
+public class BillManager extends Manager implements StorageManager {
     private List<Bill> bills = new ArrayList<>();
+    private String billsDirectory = "data/bills";
 
     public BillManager(BankSystem system) {
         super(system);
@@ -21,7 +28,7 @@ public class BillManager extends Manager {
         return "RF" + System.currentTimeMillis();
     }
 
-    public void issueBill(String businessId, String customerId, double amount, LocalDateTime expireTime, String oldRF)
+    public void issueBill(String businessId, String customerId, double amount, LocalDate expireTime, String oldRF)
             throws Exception {
 
         User business = systemRef.getUserManager().findUserById(businessId);
@@ -38,7 +45,7 @@ public class BillManager extends Manager {
             throw new IllegalArgumentException("Bill amount must be greater than zero.");
         }
 
-        LocalDateTime now = systemRef.getTime();
+        LocalDate now = systemRef.getTime();
         if (!expireTime.isAfter(now)) {
             throw new IllegalArgumentException("Expire time must be in the future.");
         }
@@ -211,4 +218,87 @@ public class BillManager extends Manager {
         return null; // Δεν βρέθηκε ενεργός λογαριασμός με αυτό το RF
     }
 
+    @Override
+    public void load(String filePath) {
+        Path p = Path.of(filePath);
+        List<String> lines = List.of();
+
+        try {
+            lines = Files.readAllLines(p);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
+        for (String line : lines) {
+            if (line.trim().isEmpty())
+                continue;
+
+            String type = line.split(",")[0].split(":")[1];
+
+        }
+    }
+
+    @Override
+    public void save(Storable s, String filePath, boolean append) {
+        Path p = Path.of(filePath);
+
+        try {
+            Files.write(p, List.of(s.marshal()), StandardOpenOption.APPEND);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void saveData() {
+        // 1. issued.csv
+        // .. save mia lista se ena arxeio
+        saveBillsToFile(bills, billsDirectory + "/issued.csv");
+
+        // 2. paid.csv
+        // .. save mia lista se ena arxeio
+        List<Bill> paidBills = new ArrayList<>();
+        for (Bill b : bills) {
+            if (b.isPaid()) {
+                paidBills.add(b);
+            }
+        }
+        saveBillsToFile(paidBills, billsDirectory + "/paid.csv");
+
+        // 3. ana hmeromhnia
+        // .. save polles listes se ena arxeio h kathe mia
+        HashMap<LocalDate, List<Bill>> billsPerDate = new HashMap<>();
+
+        for (Bill b : bills) {
+            LocalDate d = b.getTimePublished();
+
+            if (!billsPerDate.containsKey(d)) {
+                billsPerDate.put(d, new ArrayList<>());
+            }
+
+            billsPerDate.get(d).add(b);
+        }
+        // exoyme ena hashmap to opoio antistoixei mia lista apo bills se kathe
+        // hmeromhnia ekdoshs
+
+        for (LocalDate d : billsPerDate.keySet()) {
+            saveBillsToFile(billsPerDate.get(d), billsDirectory + "/" + d + ".csv");
+        }
+
+    }
+
+    public void saveBillsToFile(List<Bill> bills, String filepath) {
+        try {
+            Path p = Path.of(filepath);
+            Files.write(p, List.of());
+
+            // gia kathe antikeimeno sto usersmap tha kaloyme thn save
+            for (Bill b : bills) {
+                save(b, filepath, true);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

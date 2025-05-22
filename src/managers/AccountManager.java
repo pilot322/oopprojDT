@@ -2,6 +2,7 @@ package managers;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -10,7 +11,6 @@ import models.Storable;
 import models.accounts.BankAccount;
 import models.accounts.BusinessAccount;
 import models.accounts.PersonalAccount;
-import models.users.Admin;
 import models.users.Company;
 import models.users.Individual;
 import models.users.User;
@@ -25,6 +25,7 @@ public class AccountManager extends Manager implements StorageManager {
         super(systemref);
         bankAccountList = new ArrayList<>();
 
+        load(accountsFilePath);
     }
 
     private String generateIBAN(String countryCode, String accountTypeCode) {
@@ -131,7 +132,7 @@ public class AccountManager extends Manager implements StorageManager {
         }
 
         for (BankAccount account : bankAccountList) {
-            if (account instanceof BusinessAccount && account.getOwnerId() == businessId) {
+            if (account instanceof BusinessAccount && account.getOwnerId().equals(businessId)) {
                 return (BusinessAccount) account;
             }
         }
@@ -150,7 +151,7 @@ public class AccountManager extends Manager implements StorageManager {
             if (account instanceof PersonalAccount) {
                 // casting to acc gia na mhn exoume prosvasi stis methodous
                 PersonalAccount personalAccount = (PersonalAccount) account;
-                if (personalAccount.getOwnerId() == individualId
+                if (personalAccount.getOwnerId().equals(individualId)
                         || personalAccount.getSecondaryOwnerIds().contains(individualId)) {
                     results.add(personalAccount);
                 }
@@ -179,7 +180,7 @@ public class AccountManager extends Manager implements StorageManager {
     }
 
     @Override
-    public void load(Storable s, String filePath) {
+    public void load(String filePath) {
         Path path = Path.of(filePath);
         List<String> lines;
 
@@ -200,17 +201,17 @@ public class AccountManager extends Manager implements StorageManager {
 
             switch (type) {
                 case "PersonalAccount":
-                    // account = new PersonalAccount("", "", "", "", "", "");
+                    account = new PersonalAccount(line);
                     break;
                 case "BusinessAccount":
-                    // account = new BusinessAccount("", "", "", "", "");
+                    account = new BusinessAccount(line);
                     break;
                 default:
                     System.out.println("Unknown account type: " + type);
                     continue;
             }
 
-            account.unmarshal(line);
+            System.out.println(account.marshal());
             bankAccountList.add(account);
         }
     }
@@ -227,23 +228,30 @@ public class AccountManager extends Manager implements StorageManager {
 
         Path p = Path.of(filePath);
 
-        List<String> lines = null;
 
         try {
-            lines = Files.readAllLines(p);
+            Files.write(p, List.of(s.marshal()), StandardOpenOption.APPEND);
         } catch (Exception e) {
             e.printStackTrace();
             return;
         }
+    }
 
-        lines.add(s.marshal());
+    public void saveData(){
+                // tha prepei na adeiazoyme to arxeio prin kanoyme append
+        try{
+            Path p = Path.of(accountsFilePath);
+            Files.write(p, List.of());
 
-        try {
-            Files.write(p, lines);
-        } catch (Exception e) {
+            // gia kathe antikeimeno sto usersmap tha kaloyme thn save
+            for(BankAccount b : bankAccountList){
+                save(b, accountsFilePath, true);
+            }
+
+        } catch (Exception e){
             e.printStackTrace();
-            return;
         }
+        
     }
 
 }

@@ -6,6 +6,10 @@ public class Company extends Costumer {
         super(legalName, id, userName, password, vatNumber);
     }
 
+    public Company(String userMarshallData) {
+        super(userMarshallData);
+    }
+
     @Override
     public String marshal() {
         String temp = String.format("type:Company,id:%s,legalName:%s,userName:%s,password:%s,vatNumber:%s", id,

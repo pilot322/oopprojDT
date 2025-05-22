@@ -1,21 +1,27 @@
 package models.accounts;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import models.Storable;
+import system.BankSystem;
 
 public abstract class BankAccount implements Storable {
     protected String IBAN;
     protected String ownerId;
     protected double balance;
     protected double interestRate;
-    protected LocalDateTime dateCreated;
+    protected LocalDate dateCreated;
 
     public BankAccount(String IBAN, String ownerId, double interestRate) {
         this.IBAN = IBAN;
         this.ownerId = ownerId;
         this.interestRate = interestRate;
         this.balance = 0.0;
+        this.dateCreated = BankSystem.getSystemRef().getTime();
+    }
+
+    public BankAccount(String data){
+        unmarshal(data);
     }
 
     public String getIBAN() {
